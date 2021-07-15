@@ -2,6 +2,8 @@
 
 #include <exception>
 #include <sstream>
+namespace csv {
+
 std::istream &CsvFileStream::open() {
     fileStream.open(source);
     if (!fileStream.is_open()) {
@@ -45,3 +47,5 @@ void skip_line(CsvFileStream &csv) {
         std::getline(stream, line);
     }
 }
+
+} // namespace csv

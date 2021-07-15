@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+namespace csv {
 
 class CsvFileStream {
   private:
@@ -17,3 +18,5 @@ class CsvFileStream {
 };
 std::vector<double> get_line(CsvFileStream &csv);
 void skip_line(CsvFileStream &csv);
+
+} // namespace csv
