@@ -34,7 +34,7 @@ std::vector<double> get_line(CsvFileStream &csv) {
         std::getline(stream, line);
         buffer << line;
         while (!buffer.eof()) {
-            std::getline(stream, data, ',');
+            std::getline(buffer, data, ',');
             vector.push_back(std::stod(data));
         }
     }
