@@ -16,3 +16,4 @@ class CsvFileStream {
     void close();
 };
 std::vector<double> get_line(CsvFileStream &csv);
+void skip_line(CsvFileStream &csv);
