@@ -14,7 +14,8 @@ csv.cpp
 csv.h
 coin_util.cpp
 coin_util.h
-
+test.cpp
+test.h
 )
 target_include_directories(main_file PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
