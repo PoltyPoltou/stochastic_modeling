@@ -14,6 +14,38 @@ std::ostream &operator<<(std::ostream &os, Itineraire &itin) {
             os << "PFS--->Client";
             return os;
         }
+    } else {
+        if (itin.get_possibles()[0]) {
+            if (itin.get_depart_volu() == "Mag") {
+                os << "Mag-V->Client";
+            }
+            if (itin.get_depart_volu() == "PFS") {
+                os << "PFS-V->Mag-V->Client";
+            }
+            if (itin.get_depart_volu() == "CAR") {
+                os << "CAR-V->Mag-V->Client";
+            }
+        } else if (itin.get_possibles()[1]) {
+            if (itin.get_depart_volu() == "Mag") {
+                os << "PFS--->Mag-V->Client";
+            }
+            if (itin.get_depart_volu() == "PFS") {
+                os << "PFS-V->Mag-V->Client";
+            }
+            if (itin.get_depart_volu() == "CAR") {
+                os << "\nPFS---|\n      |->Mag-V->Client \nCAR-V-|";
+            }
+        } else { // itin.get_possibles()[2]
+            if (itin.get_depart_volu() == "Mag") {
+                os << "Mag-V->Client + PFS--->Client";
+            }
+            if (itin.get_depart_volu() == "PFS") {
+                os << "PFS-V->Client";
+            }
+            if (itin.get_depart_volu() == "CAR") {
+                os << "CAR-V->Mag-V->Client + PFS--->Client";
+            }
+        }
     }
     return os;
 }
