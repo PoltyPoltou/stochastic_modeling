@@ -20,6 +20,7 @@ data.cpp
 data.h
 probleme.cpp
 probleme.h
+itineraire.cpp
 itineraire.h
 livraison.h
 commandetype.h
