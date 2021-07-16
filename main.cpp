@@ -1,8 +1,11 @@
-#include "coin/OsiClpSolverInterface.hpp"
+#include "coin/CoinPackedVector.hpp"
+#include "coin/OsiCpxSolverInterface.hpp"
 #include "csv.h"
 #include "dir_separator.h"
 
 #include <iostream>
+#include <vector>
+
 void testCsv(std::string data_dir) {
     csv::CsvFileStream csv_file(data_dir + "test.csv");
     csv_file.open();
@@ -11,6 +14,14 @@ void testCsv(std::string data_dir) {
     assert(vector[0] == 10);
     assert(vector[1] == 10);
     assert(vector[2] == 8);
+}
+
+CoinPackedVector std_to_coin_vector(std::vector<double> &vec) {
+    CoinPackedVector coin_vec;
+    for (int i = 0; i < vec.size(); i++) {
+        coin_vec.insert(i, vec[i]);
+    }
+    return coin_vec;
 }
 
 int main(int argc, char const *argv[]) {
