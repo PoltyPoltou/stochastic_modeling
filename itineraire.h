@@ -29,10 +29,11 @@ class Itineraire {
 
     int get_delai() { return delai; }
     int get_cutoff() { return cutoff; }
-    bool get_volumineux() { return volumineux; }
+    bool is_volumineux() { return volumineux; }
     std::string get_depart_volu() { return depart_volu; }
     std::array<bool, 3> &get_possibles() { return possibles; }
     std::map<std::string, double> &get_prix() { return prix; }
+    double get_prix_livraison();
 };
 
 std::ostream &operator<<(std::ostream &os, Itineraire &itin);
