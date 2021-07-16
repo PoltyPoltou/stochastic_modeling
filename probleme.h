@@ -33,25 +33,25 @@ class Probleme {
 
     Livraison get_livraison_car() { return livraison_car; };
 
-    std::vector<Itineraire> get_vec_itineraires() { return vec_itineraires; };
+    std::vector<Itineraire> &get_vec_itineraires() { return vec_itineraires; };
 
-    std::vector<Livraison> get_vec_livraison_volu_mag() {
+    std::vector<Livraison> &get_vec_livraison_volu_mag() {
         return vec_livraison_volu_mag;
     };
 
-    std::vector<Livraison> get_vec_livraison_volu_pfs() {
+    std::vector<Livraison> &get_vec_livraison_volu_pfs() {
         return vec_livraison_volu_pfs;
     };
 
-    std::map<std::string, std::array<double, 2>> get_stocks() {
+    std::map<std::string, std::array<double, 2>> &get_stocks() {
         return stocks;
     };
 
-    std::map<std::string, std::array<double, 2>> get_prix_preration() {
+    std::map<std::string, std::array<double, 2>> &get_prix_preration() {
         return prix_preration;
     };
 
-    std::map<CommandeType, std::array<double, 2>> get_demande() {
+    std::map<CommandeType, std::array<double, 2>> &get_demande() {
         return demande;
     };
 };
