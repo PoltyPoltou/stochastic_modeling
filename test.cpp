@@ -6,6 +6,11 @@
 #include "coin_util.h"
 #include "csv.h"
 
+void testall(std::string data_dir) {
+    testCsv(data_dir);
+    testCplex();
+}
+
 void testCsv(std::string data_dir) {
     csv::CsvFileStream csv_file(data_dir + "test.csv");
     csv_file.open();
