@@ -10,7 +10,8 @@ void testCsv(std::string data_dir) {
     csv::CsvFileStream csv_file(data_dir + "test.csv");
     csv_file.open();
     csv::skip_line(csv_file);
-    std::vector<double> vector(csv::get_line(csv_file));
+    std::vector<double> vector;
+    csv::get_line(csv_file, vector);
     assert(vector[0] == 10);
     assert(vector[1] == 10);
     assert(vector[2] == 8);

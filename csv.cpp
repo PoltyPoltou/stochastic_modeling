@@ -24,9 +24,8 @@ std::ifstream &CsvFileStream::getStream() {
     return fileStream;
 }
 
-std::vector<double> get_line(CsvFileStream &csv) {
+void get_line(CsvFileStream &csv, std::vector<double> &vector) {
     std::istream &stream = csv.getStream();
-    std::vector<double> vector;
     if (csv.is_open() && !stream.eof()) {
         std::stringstream buffer;
         std::string line;
@@ -38,8 +37,8 @@ std::vector<double> get_line(CsvFileStream &csv) {
             vector.push_back(std::stod(data));
         }
     }
-    return vector;
 }
+
 void skip_line(CsvFileStream &csv) {
     std::istream &stream = csv.getStream();
     if (csv.is_open() && !stream.eof()) {

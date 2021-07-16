@@ -16,7 +16,7 @@ class CsvFileStream {
     bool is_open();
     void close();
 };
-std::vector<double> get_line(CsvFileStream &csv);
+void get_line(CsvFileStream &csv, std::vector<double> &vector);
 void skip_line(CsvFileStream &csv);
 
 } // namespace csv
