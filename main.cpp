@@ -1,8 +1,8 @@
 #include "coin/CoinPackedMatrix.hpp"
 #include "coin/CoinPackedVector.hpp"
 #include "coin/OsiCpxSolverInterface.hpp"
+#include "coin_util.h"
 #include "csv.h"
-#include "dir_separator.h"
 
 #include <iostream>
 #include <vector>
@@ -15,14 +15,6 @@ void testCsv(std::string data_dir) {
     assert(vector[0] == 10);
     assert(vector[1] == 10);
     assert(vector[2] == 8);
-}
-
-CoinPackedVector std_to_coin_vector(std::vector<double> &vec) {
-    CoinPackedVector coin_vec;
-    for (int i = 0; i < vec.size(); i++) {
-        coin_vec.insert(i, vec[i]);
-    }
-    return coin_vec;
 }
 
 void testCplex() {
@@ -45,11 +37,10 @@ void testCplex() {
 
 int main(int argc, char const *argv[]) {
     std::string arg1(argv[0]);
-    int last_dir_sep(arg1.find_last_of(DIR_SEP));
-    std::string data_dir(arg1.substr(0, last_dir_sep) + DIR_SEP + ".." + DIR_SEP
-                         + "data" + DIR_SEP);
+    int last_dir_sep(arg1.find_last_of('/'));
+    std::string data_dir(arg1.substr(0, last_dir_sep) + "/../data/");
 
-    testCplex();
     testCsv(std::string(data_dir));
+    testCplex();
     return 0;
 }

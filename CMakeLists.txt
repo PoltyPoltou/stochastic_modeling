@@ -12,6 +12,9 @@ add_executable(main_file main.cpp)
 target_sources(main_file PRIVATE
 csv.cpp
 csv.h
+coin_util.cpp
+coin_util.h
+
 )
 target_include_directories(main_file PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
