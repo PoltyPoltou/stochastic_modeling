@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 
-struct Itineraire {
+class Itineraire {
   private:
     int delai;
     int cutoff;

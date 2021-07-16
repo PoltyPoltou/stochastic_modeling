@@ -16,6 +16,13 @@ coin_util.cpp
 coin_util.h
 test.cpp
 test.h
+data.cpp
+data.h
+probleme.cpp
+probleme.h
+itineraire.h
+livraison.h
+commandetype.h
 )
 target_include_directories(main_file PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
