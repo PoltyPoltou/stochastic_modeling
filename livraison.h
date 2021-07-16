@@ -3,14 +3,14 @@
 class Livraison {
   private:
     double prix;
-    int delai;
     int cutoff;
+    int delai;
 
   public:
-    Livraison(double prix, int delai, int cutoff) :
+    Livraison(double prix, int cutoff, int delai) :
         prix(prix),
-        delai(delai),
-        cutoff(cutoff) {};
+        cutoff(cutoff),
+        delai(delai) {};
 
     double get_prix() { return prix; }
     int get_delai() { return delai; }
