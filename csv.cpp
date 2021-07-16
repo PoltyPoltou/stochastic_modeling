@@ -1,5 +1,4 @@
 #include "csv.h"
-
 #include <exception>
 #include <sstream>
 namespace csv {

@@ -16,9 +16,9 @@ class Itineraire {
     Itineraire(int delai,
                int cutoff,
                bool volumineux,
-               std::string depart_volu,
                std::array<bool, 3> possibles,
-               std::map<std::string, double> prix) :
+               std::map<std::string, double> prix,
+               std::string depart_volu = "") :
         delai(delai),
         cutoff(cutoff),
         volumineux(volumineux),

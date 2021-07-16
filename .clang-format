@@ -29,7 +29,7 @@ CompactNamespaces: 'false'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'true'
 Cpp11BracedListStyle: 'true'
 FixNamespaceComments: 'true'
-IncludeBlocks: Regroup
+IncludeBlocks: Merge
 IndentCaseLabels: 'true'
 IndentWidth: '4'
 IndentPPDirectives: None
