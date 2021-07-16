@@ -1,14 +1,17 @@
 #include "test.h"
-
 #include "coin/CoinPackedMatrix.hpp"
 #include "coin/CoinPackedVector.hpp"
 #include "coin/OsiCpxSolverInterface.hpp"
 #include "coin_util.h"
 #include "csv.h"
+#include "data.h"
+#include "probleme.h"
+#include <iostream>
 
 void testall(std::string data_dir) {
     testCsv(data_dir);
     testCplex();
+    testReadRouteCsv(data_dir);
 }
 
 void testCsv(std::string data_dir) {
@@ -38,4 +41,14 @@ void testCplex() {
     assert(problem->getColSolution()[0] == 1);
     assert(problem->getColSolution()[1] == 1);
     delete problem;
+}
+
+void testReadRouteCsv(std::string data_dir) {
+    Probleme pb(0, 0, Livraison(0, 1, 13));
+    read_and_gen_data_from_csv(pb, data_dir);
+    for (Itineraire itin : pb.get_vec_itineraires()) {
+        std::cout << itin.get_possibles()[0] << itin.get_possibles()[1]
+                  << itin.get_possibles()[2] << " " << itin.get_prix()["Mag"]
+                  << " " << itin << std::endl;
+    }
 }
