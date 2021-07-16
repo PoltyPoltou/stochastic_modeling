@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_CXX_STANDARD 20)
+  
 project(stochastic_decathlon)
 
 find_package(Cbc REQUIRED)
