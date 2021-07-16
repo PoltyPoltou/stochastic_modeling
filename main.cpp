@@ -1,7 +1,7 @@
 
 #include "test.h"
 #include <iostream>
-#include <vector
+#include <vector>
 
 int main(int argc, char const *argv[]) {
     std::string arg1(argv[0]);
