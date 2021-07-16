@@ -14,6 +14,7 @@ class CsvFileStream {
     std::ifstream &getStream();
     std::istream &open();
     bool is_open();
+    bool eof();
     void close();
 };
 void get_line(CsvFileStream &csv, std::vector<double> &vector);

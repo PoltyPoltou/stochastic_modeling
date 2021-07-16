@@ -18,6 +18,9 @@ void CsvFileStream::close() {
 bool CsvFileStream::is_open() {
     return fileStream.is_open();
 }
+bool CsvFileStream::eof() {
+    return fileStream.eof();
+}
 
 std::ifstream &CsvFileStream::getStream() {
     return fileStream;
