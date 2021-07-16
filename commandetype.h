@@ -7,7 +7,7 @@ class CommandeType {
     int heure;
 
   public:
-    CommandeType(int nb_articles, int delai, int heure) :
+    CommandeType(int nb_articles, int heure, int delai) :
         nb_articles(nb_articles),
         delai(delai),
         heure(heure) {};
