@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <iostream>
 #include <map>
 #include <string>
 
@@ -33,3 +34,5 @@ class Itineraire {
     std::array<bool, 3> &get_possibles() { return possibles; }
     std::map<std::string, double> &get_prix() { return prix; }
 };
+
+std::ostream &operator<<(std::ostream &os, Itineraire &itin);
