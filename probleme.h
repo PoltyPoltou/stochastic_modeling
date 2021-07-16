@@ -25,6 +25,9 @@ class Probleme {
     std::map<CommandeType, std::array<double, 2>> demande;
 
   public:
+    static const int articles_max = 9;
+    static const int delai_min = 1, delai_max = 3;
+
     Probleme(int n_cmd, double ratio_volumineux, Livraison car);
 
     int get_nb_cmd() { return nb_cmd; };
