@@ -33,6 +33,13 @@ class Itineraire {
     std::string get_depart_volu() { return depart_volu; }
     std::array<bool, 3> &get_possibles() { return possibles; }
     std::map<std::string, double> &get_prix() { return prix; }
+    void set_delai(int new_delai) { delai = new_delai; };
+    void set_cutoff(int new_cutoff) { cutoff = new_cutoff; };
+    void set_volumineux(bool new_volumineux) { volumineux = new_volumineux; };
+    void set_depart_volu(std::string new_depart_volu) {
+        depart_volu = new_depart_volu;
+    };
+
     double get_prix_livraison();
 };
 
