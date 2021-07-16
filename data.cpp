@@ -8,6 +8,7 @@ void read_and_gen_data_from_csv(Probleme &probleme,
     std::map<int, double> delta_volu_map(
         load_delta_livraison_volu(probleme, data_folder_path));
     load_livraison_pfs_volu(probleme, data_folder_path);
+    load_livraison_mag_volu(probleme, data_folder_path);
 }
 
 void load_std_itineraires(Probleme &probleme, std::string data_folder_path) {
@@ -66,6 +67,17 @@ void load_livraison_pfs_volu(Probleme &probleme, std::string data_folder_path) {
 }
 
 void load_livraison_mag_volu(Probleme &probleme, std::string data_folder_path) {
+    std::vector<double> buffer_vec;
+    csv::CsvFileStream file(data_folder_path + "livraison_volu_mag.csv");
+    file.open();
+    csv::skip_line(file); // discarding header line
+    while (!file.eof()) {
+        csv::get_line(file, buffer_vec);
+        probleme.get_vec_livraison_volu_mag().push_back(
+            Livraison(buffer_vec[0], buffer_vec[1], buffer_vec[2]));
+        buffer_vec.clear();
+    }
+    file.close();
 }
 
 void generate_livraison_volu(Probleme &probleme, std::string data_folder_path) {
