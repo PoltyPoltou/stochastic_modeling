@@ -57,3 +57,16 @@ double Itineraire::get_prix_livraison() {
     }
     return somme;
 }
+
+bool Itineraire::is_possible(int i, int n, std::string lieu) {
+    if (volumineux && lieu != depart_volu) {
+        return false;
+    }
+    if (i == 0) {
+        return possibles[0];
+    }
+    if (i == n) {
+        return possibles[2];
+    }
+    return possibles[1];
+}

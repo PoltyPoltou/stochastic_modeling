@@ -41,6 +41,7 @@ class Itineraire {
     };
 
     double get_prix_livraison();
+    bool is_possible(int i, int n, std::string lieu = "");
 };
 
 std::ostream &operator<<(std::ostream &os, Itineraire &itin);
