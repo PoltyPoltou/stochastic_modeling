@@ -1,7 +1,8 @@
 #include "data.h"
+#include "commandetype.h"
 #include "csv.h"
 #include <iostream>
-
+#include <math.h>
 void read_and_gen_data_from_csv(Probleme &probleme,
                                 std::string data_folder_path) {
     load_std_itineraires(probleme, data_folder_path);
@@ -9,6 +10,8 @@ void read_and_gen_data_from_csv(Probleme &probleme,
         load_delta_livraison_volu(probleme, data_folder_path));
     load_livraison_pfs_volu(probleme, data_folder_path);
     load_livraison_mag_volu(probleme, data_folder_path);
+    generate_livraison_volu(probleme, data_folder_path, delta_volu_map);
+    generate_demand(probleme);
 }
 
 void load_std_itineraires(Probleme &probleme, std::string data_folder_path) {
@@ -80,5 +83,126 @@ void load_livraison_mag_volu(Probleme &probleme, std::string data_folder_path) {
     file.close();
 }
 
-void generate_livraison_volu(Probleme &probleme, std::string data_folder_path) {
+// delta_volu_map : key is the whole part of std price mutliplied by 100
+void generate_livraison_volu(Probleme &probleme,
+                             std::string data_folder_path,
+                             std::map<int, double> delta_volu_map) {
+    for (Itineraire itin :
+         std::vector<Itineraire>(probleme.get_vec_itineraires())) {
+
+        int pfs_price_key = floor(100 * itin.get_prix()["PFS"]);
+        int mag_price_key = floor(100 * itin.get_prix()["Mag"]);
+
+        if (itin.get_possibles()[0]) { // Magasin only
+            // PFS
+            Itineraire new_itin(itin);
+            new_itin.set_volumineux(true);
+            new_itin.set_depart_volu("PFS");
+            if (delta_volu_map.contains(mag_price_key)) {
+                new_itin.get_prix()["Mag"] += delta_volu_map[mag_price_key];
+                for (Livraison l : probleme.get_vec_livraison_volu_pfs()) {
+                    Itineraire itin_pfs(new_itin);
+                    itin_pfs.get_prix()["PFS"] = l.get_prix();
+                    itin_pfs.set_delai(itin_pfs.get_delai() + l.get_delai());
+                    itin_pfs.set_cutoff(l.get_cutoff());
+                    probleme.get_vec_itineraires().push_back(itin_pfs);
+                }
+            }
+
+            // Mag
+            new_itin = Itineraire(itin);
+            new_itin.set_volumineux(true);
+            new_itin.set_depart_volu("Mag");
+            if (delta_volu_map.contains(mag_price_key)) {
+                new_itin.get_prix()["Mag"] += delta_volu_map[mag_price_key];
+                probleme.get_vec_itineraires().push_back(new_itin);
+            }
+
+            // CAR
+            new_itin = Itineraire(itin);
+            new_itin.set_volumineux(true);
+            new_itin.set_depart_volu("CAR");
+            if (delta_volu_map.contains(mag_price_key)) {
+                new_itin.get_prix()["Mag"] += delta_volu_map[mag_price_key];
+                new_itin.get_prix()["CAR"] =
+                    probleme.get_livraison_car().get_prix();
+                new_itin.set_delai(new_itin.get_delai()
+                                   + probleme.get_livraison_car().get_delai());
+                new_itin.set_cutoff(probleme.get_livraison_car().get_cutoff());
+                probleme.get_vec_itineraires().push_back(new_itin);
+            }
+        } else if (itin.get_possibles()[1]) { // Mag + PFS
+            // PFS
+            Itineraire new_itin(itin);
+            new_itin.set_volumineux(true);
+            new_itin.set_depart_volu("PFS");
+            if (delta_volu_map.contains(mag_price_key)
+                && delta_volu_map.contains(pfs_price_key)) {
+                new_itin.get_prix()["Mag"] += delta_volu_map[mag_price_key];
+                new_itin.get_prix()["PFS"] += delta_volu_map[pfs_price_key];
+                probleme.get_vec_itineraires().push_back(new_itin);
+            }
+
+            // Mag
+            new_itin = Itineraire(itin);
+            new_itin.set_volumineux(true);
+            new_itin.set_depart_volu("Mag");
+            if (delta_volu_map.contains(mag_price_key)) {
+                new_itin.get_prix()["Mag"] += delta_volu_map[mag_price_key];
+                new_itin.get_possibles()[2] = true;
+                probleme.get_vec_itineraires().push_back(new_itin);
+            }
+            // CAR
+            new_itin = Itineraire(itin);
+            new_itin.set_volumineux(true);
+            new_itin.set_depart_volu("CAR");
+            if (delta_volu_map.contains(mag_price_key)) {
+                new_itin.get_prix()["Mag"] += delta_volu_map[mag_price_key];
+                new_itin.get_prix()["CAR"] =
+                    probleme.get_livraison_car().get_prix();
+                new_itin.get_possibles()[2] = true;
+                new_itin.set_cutoff(
+                    new_itin.get_cutoff() == 14 ?
+                        std::min(new_itin.get_cutoff(),
+                                 probleme.get_livraison_car().get_cutoff()) :
+                        new_itin.get_cutoff());
+                probleme.get_vec_itineraires().push_back(new_itin);
+            }
+        } else { // PFS only
+            // PFS
+            Itineraire new_itin(itin);
+            new_itin.set_volumineux(true);
+            new_itin.set_depart_volu("PFS");
+            if (delta_volu_map.contains(pfs_price_key)) {
+                new_itin.get_prix()["PFS"] += delta_volu_map[pfs_price_key];
+                probleme.get_vec_itineraires().push_back(new_itin);
+            }
+            // Mag
+            new_itin = Itineraire(itin);
+            new_itin.set_volumineux(true);
+            new_itin.set_depart_volu("Mag");
+            for (Livraison l : probleme.get_vec_livraison_volu_pfs()) {
+                Itineraire itin_pfs(new_itin);
+                itin_pfs.get_prix()["Mag"] = l.get_prix();
+                itin_pfs.set_delai(
+                    std::max(itin_pfs.get_delai(), l.get_delai()));
+                itin_pfs.set_cutoff(
+                    std::min(itin_pfs.get_cutoff(), l.get_cutoff()));
+                probleme.get_vec_itineraires().push_back(itin_pfs);
+            }
+        }
+    }
+}
+
+void generate_demand(Probleme probleme) {
+    double uniform_repartion = Probleme::articles_max
+                               * (Probleme::delai_max - Probleme::delai_min + 1)
+                               * 24;
+    for (CommandeType cmd : Probleme::commandes_set) {
+        probleme.get_demande()[cmd] = {
+            (1 - probleme.get_ratio_volu()) / Probleme::commandes_set.size(),
+            probleme.get_ratio_volu() / Probleme::commandes_set.size()};
+        std::cout << cmd.get_nb_articles() << cmd.get_heure() << cmd.get_delai()
+                  << std::endl;
+    }
 }

@@ -44,11 +44,6 @@ void testCplex() {
 }
 
 void testReadRouteCsv(std::string data_dir) {
-    Probleme pb(0, 0, Livraison(0, 1, 13));
+    Probleme pb(100, 0.15, Livraison(0, 1, 13));
     read_and_gen_data_from_csv(pb, data_dir);
-    for (Itineraire itin : pb.get_vec_itineraires()) {
-        std::cout << itin.get_possibles()[0] << itin.get_possibles()[1]
-                  << itin.get_possibles()[2] << " " << itin.get_prix()["Mag"]
-                  << " " << itin << std::endl;
-    }
 }
