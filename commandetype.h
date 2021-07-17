@@ -12,7 +12,18 @@ class CommandeType {
         delai(delai),
         heure(heure) {};
 
-    int get_nb_articles() { return nb_articles; }
-    int get_delai() { return delai; }
-    int get_heure() { return heure; }
+    int get_nb_articles() const { return nb_articles; }
+    int get_delai() const { return delai; }
+    int get_heure() const { return heure; }
+};
+
+struct Compare_CmdType {
+    bool operator()(CommandeType const &rhs, CommandeType const &lhs) const {
+        return rhs.get_nb_articles() < lhs.get_nb_articles()
+               || (rhs.get_nb_articles() == lhs.get_nb_articles()
+                   && rhs.get_delai() < lhs.get_delai())
+               || (rhs.get_nb_articles() == lhs.get_nb_articles()
+                   && rhs.get_delai() == lhs.get_delai()
+                   && rhs.get_heure() < lhs.get_heure());
+    }
 };
