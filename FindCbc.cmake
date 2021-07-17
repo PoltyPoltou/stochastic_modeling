@@ -1,9 +1,9 @@
-set (CBC_INCLUDE_DIRS /home/polty/document/cpp/stage_decat/include)
-set (CBC_LIBRARY_DIRS /home/polty/document/cpp/stage_decat/lib)
+set (CBC_INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}/include)
+set (CBC_LIBRARY_DIRS ${CMAKE_CURRENT_LIST_DIR}/lib)
 
 set (CBC_LIBRARIES)
 
-set (libs "Clp" "CoinUtils" "OsiClp" "OsiCpx" "Osi")
+set (libs "CoinUtils" "OsiCpx" "Osi")
 foreach (l ${libs})
   find_library(
     ${l}_LIBRARY
@@ -17,7 +17,7 @@ foreach (l ${libs})
 endforeach ()
 
 include (FindPackageHandleStandardArgs)
-find_package_handle_standard_args (Cbc REQUIRED_VARS CBC_LIBRARIES  Clp_LIBRARY CoinUtils_LIBRARY OsiClp_LIBRARY OsiCpx_LIBRARY Osi_LIBRARY CBC_INCLUDE_DIRS)
+find_package_handle_standard_args (Cbc REQUIRED_VARS CBC_LIBRARIES  CoinUtils_LIBRARY OsiCpx_LIBRARY Osi_LIBRARY CBC_INCLUDE_DIRS)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
