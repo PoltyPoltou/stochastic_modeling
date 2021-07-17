@@ -2,11 +2,13 @@
 #include "commandetype.h"
 #include "itineraire.h"
 #include "livraison.h"
+#include <map>
+#include <set>
 #include <string>
 #include <vector>
-
 // Business object input
 class Probleme {
+
   private:
     int nb_cmd;
     double ratio_volu;
@@ -22,12 +24,12 @@ class Probleme {
     std::map<std::string, std::array<double, 2>> prix_preration;
     // first key is the place,
     // second is 0 for standard 1 for volu
-    std::map<CommandeType, std::array<double, 2>> demande;
+    std::map<CommandeType, std::array<double, 2>, Compare_CmdType> demande;
 
   public:
     static const int articles_max = 9;
     static const int delai_min = 1, delai_max = 3;
-
+    static std::set<CommandeType, Compare_CmdType> commandes_set;
     Probleme(int n_cmd, double ratio_volumineux, Livraison car);
 
     int get_nb_cmd() { return nb_cmd; };
@@ -54,7 +56,8 @@ class Probleme {
         return prix_preration;
     };
 
-    std::map<CommandeType, std::array<double, 2>> &get_demande() {
+    std::map<CommandeType, std::array<double, 2>, Compare_CmdType> &
+        get_demande() {
         return demande;
     };
 };
