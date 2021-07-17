@@ -27,10 +27,10 @@ class Itineraire {
         possibles(possibles),
         prix(prix) {};
 
-    int get_delai() { return delai; }
-    int get_cutoff() { return cutoff; }
-    bool is_volumineux() { return volumineux; }
-    std::string get_depart_volu() { return depart_volu; }
+    int get_delai() const { return delai; }
+    int get_cutoff() const { return cutoff; }
+    bool is_volumineux() const { return volumineux; }
+    std::string get_depart_volu() const { return depart_volu; }
     std::array<bool, 3> &get_possibles() { return possibles; }
     std::map<std::string, double> &get_prix() { return prix; }
     void set_delai(int new_delai) { delai = new_delai; };

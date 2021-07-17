@@ -12,7 +12,7 @@ class Livraison {
         cutoff(cutoff),
         delai(delai) {};
 
-    double get_prix() { return prix; }
-    int get_delai() { return delai; }
-    int get_cutoff() { return cutoff; }
+    double get_prix() const { return prix; }
+    int get_delai() const { return delai; }
+    int get_cutoff() const { return cutoff; }
 };
