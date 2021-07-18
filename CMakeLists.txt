@@ -24,6 +24,8 @@ itineraire.cpp
 itineraire.h
 livraison.h
 commandetype.h
+lp.cpp
+lp.h
 )
 target_include_directories(main_file PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
