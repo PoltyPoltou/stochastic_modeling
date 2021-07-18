@@ -26,21 +26,20 @@ void testCsv(std::string data_dir) {
 }
 
 void testCplex() {
-    OsiSolverInterface *problem = new OsiCpxSolverInterface;
-
+    OsiCpxSolverInterface real_solver;
+    OsiSolverInterface &problem(real_solver);
     std::vector<double> obj({-1, -1}), col_lb({0, 0}), col_ub({100, 100}),
         row_lb({0, 0}), row_ub({3, 3}), row1({1, 2}), row2({2, 1});
     CoinPackedMatrix matrice;
     matrice.setDimensions(0, 2);
     matrice.appendRow(std_to_coin_vector(row1));
     matrice.appendRow(std_to_coin_vector(row2));
-    problem->loadProblem(matrice, col_lb.data(), col_ub.data(), obj.data(),
-                         row_lb.data(), row_ub.data());
-    problem->initialSolve();
-    assert(problem->getObjValue() == -2);
-    assert(problem->getColSolution()[0] == 1);
-    assert(problem->getColSolution()[1] == 1);
-    delete problem;
+    problem.loadProblem(matrice, col_lb.data(), col_ub.data(), obj.data(),
+                        row_lb.data(), row_ub.data());
+    problem.initialSolve();
+    assert(problem.getObjValue() == -2);
+    assert(problem.getColSolution()[0] == 1);
+    assert(problem.getColSolution()[1] == 1);
 }
 
 void testReadRouteCsv(std::string data_dir) {
