@@ -6,6 +6,9 @@
 #include <set>
 #include <string>
 #include <vector>
+
+#define LIEUX_VOLU \
+    { "PFS", "Mag", "CAR" }
 // Business object input
 class Probleme {
 
@@ -32,14 +35,14 @@ class Probleme {
     static std::set<CommandeType, Compare_CmdType> commandes_set;
     Probleme(int n_cmd, double ratio_volumineux, Livraison car);
 
-    int get_nb_cmd() { return nb_cmd; };
+    int get_nb_cmd() const { return nb_cmd; };
 
-    double get_ratio_volu() { return ratio_volu; };
+    double get_ratio_volu() const { return ratio_volu; };
 
     Livraison get_livraison_car() { return livraison_car; };
 
     std::vector<Itineraire> &get_vec_itineraires() { return vec_itineraires; };
-    std::vector<Itineraire> const &get_vec_itineraires_c() const {
+    std::vector<Itineraire> const &getc_vec_itineraires() const {
         return vec_itineraires;
     };
 
@@ -58,13 +61,24 @@ class Probleme {
     std::map<std::string, std::array<double, 2>> &get_prix_preration() {
         return prix_preration;
     };
+    std::map<std::string, std::array<double, 2>> const &
+        getc_prix_preration() const {
+        return prix_preration;
+    };
 
     std::map<CommandeType, std::array<double, 2>, Compare_CmdType> &
         get_demande() {
         return demande;
     };
+    std::map<CommandeType, std::array<double, 2>, Compare_CmdType> const &
+        getc_demande() const {
+        return demande;
+    };
 };
 
-double get_prix_total_itineraire(Probleme &pb, Itineraire &itin, int i, int n);
+double get_prix_total_itineraire(Probleme const &pb,
+                                 Itineraire &itin,
+                                 int i,
+                                 int n);
 double get_prix_prepa_itineraire(
-    Probleme &pb, Itineraire &itin, int i, int n, std::string lieu);
+    Probleme const &pb, Itineraire &itin, int i, int n, std::string lieu);
