@@ -17,6 +17,12 @@ Probleme::Probleme(int n_cmd, double ratio_volumineux, Livraison car) :
             }
         }
     }
+    prix_preration["PFS"] = {1.86, 1.98};
+    prix_preration["Mag"] = {3.17, 3.37};
+    prix_preration["CAR"] = {0, 1.98};
+    stocks["PFS"] = {0.7, 0.2};
+    stocks["Mag"] = {0.3, 0.5};
+    stocks["CAR"] = {0, 0.5};
 }
 
 // NOT TESTED
