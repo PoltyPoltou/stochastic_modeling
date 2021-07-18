@@ -194,7 +194,7 @@ void generate_livraison_volu(Probleme &probleme,
     }
 }
 
-void generate_demand(Probleme probleme) {
+void generate_demand(Probleme &probleme) {
     double uniform_repartion = Probleme::articles_max
                                * (Probleme::delai_max - Probleme::delai_min + 1)
                                * 24;

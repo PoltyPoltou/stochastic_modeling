@@ -19,4 +19,4 @@ void generate_livraison_volu(Probleme &probleme,
                              std::string data_folder_path,
                              std::map<int, double> delta_volu_map);
 
-void generate_demand(Probleme probleme);
+void generate_demand(Probleme &probleme);
