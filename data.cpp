@@ -202,7 +202,5 @@ void generate_demand(Probleme probleme) {
         probleme.get_demande()[cmd] = {
             (1 - probleme.get_ratio_volu()) / Probleme::commandes_set.size(),
             probleme.get_ratio_volu() / Probleme::commandes_set.size()};
-        std::cout << cmd.get_nb_articles() << cmd.get_heure() << cmd.get_delai()
-                  << std::endl;
     }
 }
