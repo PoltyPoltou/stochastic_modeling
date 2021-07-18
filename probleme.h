@@ -39,6 +39,9 @@ class Probleme {
     Livraison get_livraison_car() { return livraison_car; };
 
     std::vector<Itineraire> &get_vec_itineraires() { return vec_itineraires; };
+    std::vector<Itineraire> const &get_vec_itineraires_c() const {
+        return vec_itineraires;
+    };
 
     std::vector<Livraison> &get_vec_livraison_volu_mag() {
         return vec_livraison_volu_mag;
