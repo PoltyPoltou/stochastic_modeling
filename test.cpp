@@ -5,6 +5,7 @@
 #include "coin_util.h"
 #include "csv.h"
 #include "data.h"
+#include "lp.h"
 #include "probleme.h"
 #include <iostream>
 
@@ -12,6 +13,7 @@ void testall(std::string data_dir) {
     testCsv(data_dir);
     testCplex();
     testReadRouteCsv(data_dir);
+    testLoadDataLp(data_dir);
 }
 
 void testCsv(std::string data_dir) {
@@ -45,4 +47,14 @@ void testCplex() {
 void testReadRouteCsv(std::string data_dir) {
     Probleme pb(100, 0.15, Livraison(0, 1, 13));
     read_and_gen_data_from_csv(pb, data_dir);
+}
+
+void testLoadDataLp(std::string data_dir) {
+    Probleme pb(100, 0.15, Livraison(0, 1, 13));
+    read_and_gen_data_from_csv(pb, data_dir);
+
+    OsiCpxSolverInterface solver_interface;
+    lp::LinearProblem lin_pb(solver_interface);
+
+    lp::load_data_in_lp(pb, lin_pb);
 }
