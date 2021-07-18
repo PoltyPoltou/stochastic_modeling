@@ -19,3 +19,26 @@ Probleme::Probleme(int n_cmd, double ratio_volumineux, Livraison car) :
     }
 }
 
+// NOT TESTED
+double get_prix_prepa_itineraire(
+    Probleme &pb, Itineraire &itin, int i, int n, std::string lieu) {
+    int quantite = 0;
+    int quantite_volu =
+        itin.is_volumineux() && (itin.get_depart_volu() == lieu);
+    if (lieu == "PFS") {
+        quantite = i;
+    } else if (lieu == "Mag") {
+        quantite = n - i;
+    } else { // lieu =="CAR"
+        quantite = 0;
+    }
+    return quantite * pb.get_prix_preration()[lieu][0]
+           + quantite_volu * pb.get_prix_preration()[lieu][1];
+}
+// NOT TESTED
+double get_prix_total_itineraire(Probleme &pb, Itineraire &itin, int i, int n) {
+    return itin.get_prix_livraison()
+           + get_prix_prepa_itineraire(pb, itin, i, n, "PFS")
+           + get_prix_prepa_itineraire(pb, itin, i, n, "Mag")
+           + get_prix_prepa_itineraire(pb, itin, i, n, "CAR");
+}

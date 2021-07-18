@@ -61,3 +61,7 @@ class Probleme {
         return demande;
     };
 };
+
+double get_prix_total_itineraire(Probleme &pb, Itineraire &itin, int i, int n);
+double get_prix_prepa_itineraire(
+    Probleme &pb, Itineraire &itin, int i, int n, std::string lieu);
