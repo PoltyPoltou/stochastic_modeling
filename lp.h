@@ -23,7 +23,10 @@ class LinearProblem {
     CoinPackedVector &get_col_ub() { return col_ub; };
     CoinPackedVector &get_row_lb() { return row_lb; };
     CoinPackedVector &get_row_ub() { return row_ub; };
-    int add_var(double coef_obj, double lower = 0, double upper = INFINITY);
+    void add_var(int &idx,
+                 double coef_obj,
+                 double lower = 0,
+                 double upper = INFINITY);
     int add_constraint(double lower = -INFINITY, double upper = INFINITY);
     int add_constraint(CoinPackedVector &coefs,
                        double lower = -INFINITY,
@@ -32,5 +35,20 @@ class LinearProblem {
 
     double infinity();
 };
+
+struct Variable {
+    Itineraire const &route;
+    int i;
+    int problem_idx;
+    Variable();
+    Variable(Itineraire const &r, int i, int idx) :
+        route(r),
+        i(i),
+        problem_idx(idx) {};
+};
+
+void load_data_in_lp(Probleme const &pb, LinearProblem &lin_pb);
+void create_variables(Probleme const &pb, LinearProblem &lin_pb);
+void create_constraints(Probleme const &pb, LinearProblem &lin_pb);
 
 } // namespace lp
