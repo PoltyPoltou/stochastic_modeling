@@ -33,10 +33,10 @@ class Probleme {
     static const int articles_max = 9;
     static const int delai_min = 1, delai_max = 3;
     static std::set<CommandeType, Compare_CmdType> commandes_set;
+
     Probleme(int n_cmd, double ratio_volumineux, Livraison car);
 
     int get_nb_cmd() const { return nb_cmd; };
-
     double get_ratio_volu() const { return ratio_volu; };
 
     Livraison get_livraison_car() { return livraison_car; };
@@ -57,6 +57,9 @@ class Probleme {
     std::map<std::string, std::array<double, 2>> &get_stocks() {
         return stocks;
     };
+    std::map<std::string, std::array<double, 2>> const &getc_stocks() const {
+        return stocks;
+    };
 
     std::map<std::string, std::array<double, 2>> &get_prix_preration() {
         return prix_preration;
@@ -74,6 +77,9 @@ class Probleme {
         getc_demande() const {
         return demande;
     };
+
+    double getc_quantite(CommandeType const &cmd, bool volu = false) const;
+    int getc_nb_articles(bool volu = false) const;
 };
 
 double get_prix_total_itineraire(Probleme const &pb,

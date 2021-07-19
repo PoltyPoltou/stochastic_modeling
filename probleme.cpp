@@ -20,11 +20,27 @@ Probleme::Probleme(int n_cmd, double ratio_volumineux, Livraison car) :
     prix_preration["PFS"] = {1.86, 1.98};
     prix_preration["Mag"] = {3.17, 3.37};
     prix_preration["CAR"] = {0, 1.98};
-    stocks["PFS"] = {0.7, 0.2};
+    stocks["PFS"] = {0.75, 0.2};
     stocks["Mag"] = {0.3, 0.5};
     stocks["CAR"] = {0, 0.5};
 }
 
+double Probleme::getc_quantite(CommandeType const &cmd, bool volu) const {
+    double ratio = volu ? ratio_volu : 1 - ratio_volu;
+    return nb_cmd * ratio * getc_demande().at(cmd)[volu];
+}
+
+int Probleme::getc_nb_articles(bool volu) const {
+    double nb_articles(0);
+    for (CommandeType cmd : Probleme::commandes_set) {
+        if (!volu) {
+            nb_articles += getc_quantite(cmd, false) * cmd.get_nb_articles();
+        } else {
+            nb_articles += getc_quantite(cmd, true);
+        }
+    }
+    return nb_articles;
+}
 // NOT TESTED
 double get_prix_prepa_itineraire(
     Probleme const &pb, Itineraire &itin, int i, int n, std::string lieu) {
