@@ -50,11 +50,21 @@ void testReadRouteCsv(std::string data_dir) {
 }
 
 void testLoadDataLp(std::string data_dir) {
-    Probleme pb(100, 0.15, Livraison(0, 1, 13));
+    Probleme pb(26460, 0.15, Livraison(0, 1, 13));
     read_and_gen_data_from_csv(pb, data_dir);
 
     OsiCpxSolverInterface solver_interface;
     lp::LinearProblem lin_pb(solver_interface);
 
     lp::load_data_in_lp(pb, lin_pb);
+    std::cout << "data loaded" << std::endl;
+    lin_pb.load_problem();
+    lin_pb.get_solver_interface().initialSolve();
+    int count(0);
+    for (int i = 0; i < lin_pb.get_solver_interface().getNumCols(); ++i) {
+        if (lin_pb.get_solver_interface().getColSolution()[i] != 0) {
+            count++;
+        }
+    }
+    std::cout << count << std::endl;
 }
