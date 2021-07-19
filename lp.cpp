@@ -48,20 +48,18 @@ double LinearProblem::infinity() {
 }
 
 void load_data_in_lp(Probleme const &pb, LinearProblem &lin_pb) {
-    create_variables(pb, lin_pb);
-    create_constraints(pb, lin_pb);
+    Commande_Variable_map cmd_var_map(create_variables(pb, lin_pb));
+    create_constraints(pb, lin_pb, cmd_var_map);
 }
-void create_variables(Probleme const &pb, LinearProblem &lin_pb) {
-    std::map<CommandeType, std::vector<Variable>, Compare_CmdType>
-        demande_variables_map;
+Commande_Variable_map create_variables(Probleme const &pb,
+                                       LinearProblem &lin_pb) {
+    Commande_Variable_map demande_variables_map;
     for (CommandeType cmd : Probleme::commandes_set) {
 
-        demande_variables_map[cmd] = std::vector<Variable>();
-        double quantite_std = pb.get_nb_cmd() * (1 - pb.get_ratio_volu())
-                              * pb.getc_demande().at(cmd)[0];
-        double quantite_volu = pb.get_nb_cmd() * pb.get_ratio_volu()
-                               * pb.getc_demande().at(cmd)[1];
-
+        demande_variables_map[cmd] = {std::vector<Variable>(),
+                                      std::vector<Variable>()};
+        double quantite_std(pb.getc_quantite(cmd, false));
+        double quantite_volu(pb.getc_quantite(cmd, true));
         for (int i = 0; i <= cmd.get_nb_articles(); i++) {
             for (Itineraire r : pb.getc_vec_itineraires()) {
                 if (!r.is_volumineux()) {
@@ -74,14 +72,15 @@ void create_variables(Probleme const &pb, LinearProblem &lin_pb) {
                                            * get_prix_total_itineraire(
                                                pb, r, i, cmd.get_nb_articles()),
                                        0, 1);
-                        demande_variables_map[cmd].push_back(
+                        demande_variables_map[cmd][0].push_back(
                             Variable(r, i, idx));
                     }
                 } else {
                     for (std::string lieu : LIEUX_VOLU) {
                         if (r.get_depart_volu() == lieu
                             && cmd.get_delai() == r.get_delai()
-                            && r.is_possible(i, cmd.get_nb_articles())
+                            && r.is_possible(i, cmd.get_nb_articles(),
+                                             r.get_depart_volu())
                             && cmd.get_heure() < r.get_cutoff()) {
                             int idx;
                             lin_pb.add_var(
@@ -90,7 +89,7 @@ void create_variables(Probleme const &pb, LinearProblem &lin_pb) {
                                     * get_prix_total_itineraire(
                                         pb, r, i, cmd.get_nb_articles()),
                                 0, 1);
-                            demande_variables_map[cmd].push_back(
+                            demande_variables_map[cmd][1].push_back(
                                 Variable(r, i, idx));
                         }
                     }
@@ -98,7 +97,58 @@ void create_variables(Probleme const &pb, LinearProblem &lin_pb) {
             }
         }
     }
+    return demande_variables_map;
 }
-void create_constraints(Probleme const &pb, LinearProblem &lin_pb) {}
+
+void create_constraints(Probleme const &pb,
+                        LinearProblem &lin_pb,
+                        Commande_Variable_map &cmd_var_map) {
+    stock_constraint(pb, lin_pb, cmd_var_map);
+    fullfilment_constraint(pb, lin_pb, cmd_var_map);
+}
+
+void stock_constraint(Probleme const &pb,
+                      LinearProblem &lin_pb,
+                      Commande_Variable_map &cmd_var_map) {
+    int nb_articles_std(pb.getc_nb_articles(false));
+    int nb_articles_volu(pb.getc_nb_articles(true));
+    int constraint_sotck_pfs(lin_pb.add_constraint(
+        0, nb_articles_std * pb.getc_stocks().at("PFS")[0]));
+    int constraint_sotck_mag(lin_pb.add_constraint(
+        0, nb_articles_std * pb.getc_stocks().at("Mag")[0]));
+
+    for (std::string lieu : LIEUX_VOLU) {
+        double stock_volu_max = pb.getc_stocks().at(lieu)[0] * nb_articles_volu;
+        int constraint_stock_volu(lin_pb.add_constraint(0, stock_volu_max));
+        for (CommandeType cmd : Probleme::commandes_set) {
+            for (Variable var : cmd_var_map.at(cmd)[1]) {
+                lin_pb.set_coef(constraint_stock_volu, var.problem_idx, 1);
+                lin_pb.set_coef(constraint_sotck_pfs, var.problem_idx, var.i);
+                lin_pb.set_coef(constraint_sotck_mag, var.problem_idx,
+                                cmd.get_nb_articles() - var.i);
+            }
+            for (Variable var : cmd_var_map.at(cmd)[0]) {
+                lin_pb.set_coef(constraint_sotck_pfs, var.problem_idx, var.i);
+                lin_pb.set_coef(constraint_sotck_mag, var.problem_idx,
+                                cmd.get_nb_articles() - var.i);
+            }
+        }
+    }
+}
+
+void fullfilment_constraint(Probleme const &pb,
+                            LinearProblem &lin_pb,
+                            Commande_Variable_map &cmd_var_map) {
+    for (CommandeType cmd : Probleme::commandes_set) {
+        int constraint_fullfillment_std(lin_pb.add_constraint(1, 1));
+        int constraint_fullfillment_volu(lin_pb.add_constraint(1, 1));
+        for (Variable var : cmd_var_map.at(cmd)[0]) {
+            lin_pb.set_coef(constraint_fullfillment_std, var.problem_idx, 1);
+        }
+        for (Variable var : cmd_var_map.at(cmd)[1]) {
+            lin_pb.set_coef(constraint_fullfillment_volu, var.problem_idx, 1);
+        }
+    }
+}
 
 } // namespace lp

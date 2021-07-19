@@ -4,14 +4,27 @@
 #include "coin/OsiCpxSolverInterface.hpp"
 #include "coin_util.h"
 #include "probleme.h"
+#include <array>
 #include <cmath>
+#include <vector>
+
 namespace lp {
+
+class LinearProblem;
+class Variable;
+
+typedef std::map<CommandeType,
+                 std::array<std::vector<Variable>, 2>,
+                 Compare_CmdType>
+    Commande_Variable_map; // links CommandeType to 2 vectors of lp variables,
+                           // 1st array is for std; 2nd is for volu
 
 class LinearProblem {
   private:
     OsiSolverInterface &solver_interface;
     CoinPackedMatrix matrix;
     CoinPackedVector objective, col_lb, col_ub, row_lb, row_ub;
+    std::vector<std::string> var_names, constraints_names;
 
   public:
     LinearProblem(OsiSolverInterface &solver);
@@ -48,7 +61,20 @@ struct Variable {
 };
 
 void load_data_in_lp(Probleme const &pb, LinearProblem &lin_pb);
-void create_variables(Probleme const &pb, LinearProblem &lin_pb);
-void create_constraints(Probleme const &pb, LinearProblem &lin_pb);
+
+Commande_Variable_map create_variables(Probleme const &pb,
+                                       LinearProblem &lin_pb);
+
+void create_constraints(Probleme const &pb,
+                        LinearProblem &lin_pb,
+                        Commande_Variable_map &cmd_var_map);
+
+void stock_constraint(Probleme const &pb,
+                      LinearProblem &lin_pb,
+                      Commande_Variable_map &cmd_var_map);
+
+void fullfilment_constraint(Probleme const &pb,
+                            LinearProblem &lin_pb,
+                            Commande_Variable_map &cmd_var_map);
 
 } // namespace lp
