@@ -5,6 +5,7 @@
 #include <string>
 
 class Itineraire {
+
   private:
     int delai;
     int cutoff;
@@ -16,24 +17,24 @@ class Itineraire {
   public:
     Itineraire(int delai,
                int cutoff,
-               bool volumineux,
+               bool volu,
                std::array<bool, 3> possibles,
                std::map<std::string, double> prix,
                std::string depart_volu = "") :
         delai(delai),
         cutoff(cutoff),
-        volumineux(volumineux),
+        volumineux(volu),
         depart_volu(depart_volu),
         possibles(possibles),
         prix(prix) {};
 
-    int get_delai() const { return delai; }
-    int get_cutoff() const { return cutoff; }
-    bool is_volumineux() const { return volumineux; }
-    std::string get_depart_volu() const { return depart_volu; }
-    std::array<bool, 3> &get_possibles() { return possibles; }
-    std::array<bool, 3> const &getc_possibles() const { return possibles; }
-    std::map<std::string, double> &get_prix() { return prix; }
+    int get_delai() const { return delai; };
+    int get_cutoff() const { return cutoff; };
+    bool is_volumineux() const { return volumineux; };
+    std::string get_depart_volu() const { return depart_volu; };
+    std::array<bool, 3> &get_possibles() { return possibles; };
+    std::array<bool, 3> const &getc_possibles() const { return possibles; };
+    std::map<std::string, double> &get_prix() { return prix; };
     void set_delai(int new_delai) { delai = new_delai; };
     void set_cutoff(int new_cutoff) { cutoff = new_cutoff; };
     void set_volumineux(bool new_volumineux) { volumineux = new_volumineux; };
@@ -41,7 +42,7 @@ class Itineraire {
         depart_volu = new_depart_volu;
     };
 
-    double get_prix_livraison();
+    double get_prix_livraison() const;
     bool is_possible(int i, int n, std::string lieu = "");
 };
 

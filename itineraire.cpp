@@ -6,13 +6,10 @@ std::ostream &operator<<(std::ostream &os, Itineraire const &itin) {
     if (!volu) {
         if (possibles[0]) {
             os << "Mag--->Client";
-            return os;
         } else if (possibles[1]) {
             os << "PFS--->Mag--->Client";
-            return os;
         } else {
             os << "PFS--->Client";
-            return os;
         }
     } else {
         if (possibles[0]) {
@@ -47,10 +44,12 @@ std::ostream &operator<<(std::ostream &os, Itineraire const &itin) {
             }
         }
     }
+    os << " cutoff : " << itin.get_cutoff() << ", delai : " << itin.get_delai()
+       << ", prix : " << itin.get_prix_livraison();
     return os;
 }
 
-double Itineraire::get_prix_livraison() {
+double Itineraire::get_prix_livraison() const {
     double somme = 0;
     for (auto iter : prix) {
         somme += iter.second;
