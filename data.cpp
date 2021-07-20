@@ -195,12 +195,8 @@ void generate_livraison_volu(Probleme &probleme,
 }
 
 void generate_demand(Probleme &probleme) {
-    double uniform_repartion = Probleme::articles_max
-                               * (Probleme::delai_max - Probleme::delai_min + 1)
-                               * 24;
     for (CommandeType cmd : Probleme::commandes_set) {
-        probleme.get_demande()[cmd] = {
-            (1 - probleme.get_ratio_volu()) / Probleme::commandes_set.size(),
-            probleme.get_ratio_volu() / Probleme::commandes_set.size()};
+        probleme.get_demande()[cmd] = {1. / Probleme::commandes_set.size(),
+                                       1. / Probleme::commandes_set.size()};
     }
 }
