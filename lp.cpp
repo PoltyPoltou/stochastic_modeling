@@ -105,8 +105,8 @@ Commande_Variable_map create_variables(Probleme const &pb,
 void create_constraints(Probleme const &pb,
                         LinearProblem &lin_pb,
                         Commande_Variable_map &cmd_var_map) {
-    // stock_constraint(pb, lin_pb, cmd_var_map);
     fullfilment_constraint(pb, lin_pb, cmd_var_map);
+    // stock_constraint(pb, lin_pb, cmd_var_map);
 }
 
 void stock_constraint(Probleme const &pb,
@@ -120,19 +120,27 @@ void stock_constraint(Probleme const &pb,
         0, nb_articles_std * pb.getc_stocks().at("Mag")[0]));
 
     for (std::string lieu : LIEUX_VOLU) {
-        double stock_volu_max = pb.getc_stocks().at(lieu)[0] * nb_articles_volu;
+        double stock_volu_max = pb.getc_stocks().at(lieu)[1] * nb_articles_volu;
         int constraint_stock_volu(lin_pb.add_constraint(0, stock_volu_max));
         for (CommandeType cmd : Probleme::commandes_set) {
+            double quantite_std = pb.getc_quantite(cmd, false);
+            double quantite_volu = pb.getc_quantite(cmd, true);
             for (Variable var : cmd_var_map.at(cmd)[1]) {
-                lin_pb.set_coef(constraint_stock_volu, var.problem_idx, 1);
-                lin_pb.set_coef(constraint_sotck_pfs, var.problem_idx, var.i);
+                if (var.route.get_depart_volu() == lieu) {
+                    lin_pb.set_coef(constraint_stock_volu, var.problem_idx,
+                                    quantite_volu);
+                }
+                lin_pb.set_coef(constraint_sotck_pfs, var.problem_idx,
+                                quantite_volu * var.i);
                 lin_pb.set_coef(constraint_sotck_mag, var.problem_idx,
-                                cmd.get_nb_articles() - var.i);
+                                quantite_volu
+                                    * (cmd.get_nb_articles() - var.i));
             }
             for (Variable var : cmd_var_map.at(cmd)[0]) {
-                lin_pb.set_coef(constraint_sotck_pfs, var.problem_idx, var.i);
+                lin_pb.set_coef(constraint_sotck_pfs, var.problem_idx,
+                                quantite_std * var.i);
                 lin_pb.set_coef(constraint_sotck_mag, var.problem_idx,
-                                cmd.get_nb_articles() - var.i);
+                                quantite_std * (cmd.get_nb_articles() - var.i));
             }
         }
     }
@@ -144,6 +152,7 @@ void fullfilment_constraint(Probleme const &pb,
     for (CommandeType cmd : Probleme::commandes_set) {
         int constraint_fullfillment_std(lin_pb.add_constraint(1, 1));
         int constraint_fullfillment_volu(lin_pb.add_constraint(1, 1));
+
         for (Variable var : cmd_var_map.at(cmd)[0]) {
             lin_pb.set_coef(constraint_fullfillment_std, var.problem_idx, 1);
         }

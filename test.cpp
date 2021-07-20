@@ -8,7 +8,8 @@
 #include "lp.h"
 #include "probleme.h"
 #include <iostream>
-#include <numeric>
+#include <map>
+#include <sstream>
 
 void testall(std::string data_dir) {
     testCsv(data_dir);
@@ -121,13 +122,85 @@ void testReadRouteCsv(std::string data_dir) {
 }
 
 void testLoadDataLp(std::string data_dir) {
-    Probleme pb(26460, 0.15, Livraison(0, 1, 13));
+    Probleme pb(26460, 0.15, Livraison(1, 13, 1));
     read_and_gen_data_from_csv(pb, data_dir);
 
     OsiCpxSolverInterface solver_interface;
     lp::LinearProblem lin_pb(solver_interface);
 
-    lp::load_data_in_lp(pb, lin_pb);
+    lp::Commande_Variable_map cmd_var_map = lp::load_data_in_lp(pb, lin_pb);
+    std::cout << "loaded in matrix" << std::endl;
+    std::map<std::string, double> set_volu, set_std;
+    std::map<std::string, double> preparation_costs(
+        {{"Mag", 0}, {"PFS", 0}, {"CAR", 0}});
     lin_pb.load_problem();
+    std::cout << "loaded in cplex" << std::endl;
     lin_pb.get_solver_interface().initialSolve();
+
+    std::stringstream buffer;
+    for (CommandeType cmd : Probleme::commandes_set) {
+        for (lp::Variable v : cmd_var_map.at(cmd)[0]) {
+            for (std::string lieu : LIEUX_VOLU) {
+                preparation_costs[lieu] +=
+                    pb.getc_quantite(cmd, false)
+                    * lin_pb.get_solver_interface()
+                          .getColSolution()[v.problem_idx]
+                    * get_prix_prepa_itineraire(pb, v.route, v.i,
+                                                cmd.get_nb_articles(), lieu);
+            }
+            if (lin_pb.get_solver_interface().getColSolution()[v.problem_idx]
+                > 0.001) {
+                buffer = std::stringstream();
+                buffer << v.route << ", value : ";
+                if (set_std.contains(buffer.str())) {
+                    set_std[buffer.str()] +=
+                        lin_pb.get_solver_interface()
+                            .getColSolution()[v.problem_idx]
+                        * pb.getc_quantite(cmd, false);
+                } else {
+                    set_std[buffer.str()] = lin_pb.get_solver_interface()
+                                                .getColSolution()[v.problem_idx]
+                                            * pb.getc_quantite(cmd, false);
+                }
+            }
+        }
+        for (lp::Variable v : cmd_var_map.at(cmd)[1]) {
+            for (std::string lieu : LIEUX_VOLU) {
+                preparation_costs[lieu] +=
+                    pb.getc_quantite(cmd, true)
+                    * lin_pb.get_solver_interface()
+                          .getColSolution()[v.problem_idx]
+                    * get_prix_prepa_itineraire(pb, v.route, v.i,
+                                                cmd.get_nb_articles(), lieu);
+            }
+            if (lin_pb.get_solver_interface().getColSolution()[v.problem_idx]
+                > 0.001) {
+                buffer = std::stringstream();
+                buffer << v.route << ", value : ";
+                if (set_volu.contains(buffer.str())) {
+                    set_volu[buffer.str()] +=
+                        lin_pb.get_solver_interface()
+                            .getColSolution()[v.problem_idx]
+                        * pb.getc_quantite(cmd, true);
+                } else {
+                    set_volu[buffer.str()] =
+                        lin_pb.get_solver_interface()
+                            .getColSolution()[v.problem_idx]
+                        * pb.getc_quantite(cmd, true);
+                }
+            }
+        }
+    }
+    for (auto iter : set_std) {
+        std::cout << iter.first << iter.second << std::endl;
+    }
+    std::cout << std::endl;
+
+    for (auto iter : set_volu) {
+        std::cout << iter.first << iter.second << std::endl;
+    }
+    for (auto iter : preparation_costs) {
+        std::cout << iter.first << " : " << iter.second << std::endl;
+    }
+    std::cout << lin_pb.get_solver_interface().getObjValue() << std::endl;
 }
