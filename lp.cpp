@@ -47,9 +47,11 @@ double LinearProblem::infinity() {
     return solver_interface.getInfinity();
 }
 
-void load_data_in_lp(Probleme const &pb, LinearProblem &lin_pb) {
+Commande_Variable_map load_data_in_lp(Probleme const &pb,
+                                      LinearProblem &lin_pb) {
     Commande_Variable_map cmd_var_map(create_variables(pb, lin_pb));
     create_constraints(pb, lin_pb, cmd_var_map);
+    return cmd_var_map;
 }
 Commande_Variable_map create_variables(Probleme const &pb,
                                        LinearProblem &lin_pb) {
@@ -103,7 +105,7 @@ Commande_Variable_map create_variables(Probleme const &pb,
 void create_constraints(Probleme const &pb,
                         LinearProblem &lin_pb,
                         Commande_Variable_map &cmd_var_map) {
-    stock_constraint(pb, lin_pb, cmd_var_map);
+    // stock_constraint(pb, lin_pb, cmd_var_map);
     fullfilment_constraint(pb, lin_pb, cmd_var_map);
 }
 

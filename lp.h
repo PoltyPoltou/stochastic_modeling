@@ -50,17 +50,18 @@ class LinearProblem {
 };
 
 struct Variable {
-    Itineraire const &route;
+    Itineraire route;
     int i;
     int problem_idx;
     Variable();
-    Variable(Itineraire const &r, int i, int idx) :
+    Variable(Itineraire &r, int i, int idx) :
         route(r),
         i(i),
         problem_idx(idx) {};
 };
 
-void load_data_in_lp(Probleme const &pb, LinearProblem &lin_pb);
+Commande_Variable_map load_data_in_lp(Probleme const &pb,
+                                      LinearProblem &lin_pb);
 
 Commande_Variable_map create_variables(Probleme const &pb,
                                        LinearProblem &lin_pb);
