@@ -1,8 +1,8 @@
 #include "itineraire.h"
 
-std::ostream &operator<<(std::ostream &os, Itineraire &itin) {
+std::ostream &operator<<(std::ostream &os, Itineraire const &itin) {
     bool volu = itin.is_volumineux();
-    std::array<bool, 3> &possibles = itin.get_possibles();
+    std::array<bool, 3> const &possibles = itin.getc_possibles();
     if (!volu) {
         if (possibles[0]) {
             os << "Mag--->Client";
@@ -15,7 +15,7 @@ std::ostream &operator<<(std::ostream &os, Itineraire &itin) {
             return os;
         }
     } else {
-        if (itin.get_possibles()[0]) {
+        if (possibles[0]) {
             if (itin.get_depart_volu() == "Mag") {
                 os << "Mag-V->Client";
             }
@@ -25,7 +25,7 @@ std::ostream &operator<<(std::ostream &os, Itineraire &itin) {
             if (itin.get_depart_volu() == "CAR") {
                 os << "CAR-V->Mag-V->Client";
             }
-        } else if (itin.get_possibles()[1]) {
+        } else if (possibles[1]) {
             if (itin.get_depart_volu() == "Mag") {
                 os << "PFS--->Mag-V->Client";
             }
@@ -35,7 +35,7 @@ std::ostream &operator<<(std::ostream &os, Itineraire &itin) {
             if (itin.get_depart_volu() == "CAR") {
                 os << "\nPFS---|\n      |->Mag-V->Client \nCAR-V-|";
             }
-        } else { // itin.get_possibles()[2]
+        } else { // possibles[2]
             if (itin.get_depart_volu() == "Mag") {
                 os << "Mag-V->Client + PFS--->Client";
             }

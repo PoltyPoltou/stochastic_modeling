@@ -32,6 +32,7 @@ class Itineraire {
     bool is_volumineux() const { return volumineux; }
     std::string get_depart_volu() const { return depart_volu; }
     std::array<bool, 3> &get_possibles() { return possibles; }
+    std::array<bool, 3> const &getc_possibles() const { return possibles; }
     std::map<std::string, double> &get_prix() { return prix; }
     void set_delai(int new_delai) { delai = new_delai; };
     void set_cutoff(int new_cutoff) { cutoff = new_cutoff; };
@@ -44,4 +45,4 @@ class Itineraire {
     bool is_possible(int i, int n, std::string lieu = "");
 };
 
-std::ostream &operator<<(std::ostream &os, Itineraire &itin);
+std::ostream &operator<<(std::ostream &os, Itineraire const &itin);
