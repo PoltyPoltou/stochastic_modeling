@@ -26,6 +26,7 @@ livraison.h
 commandetype.h
 lp.cpp
 lp.h
+const.h
 )
 target_include_directories(main_file PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 

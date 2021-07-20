@@ -1,14 +1,12 @@
 #pragma once
 #include "commandetype.h"
+#include "const.h"
 #include "itineraire.h"
 #include "livraison.h"
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
-
-#define LIEUX_VOLU \
-    { "PFS", "Mag", "CAR" }
 // Business object input
 class Probleme {
 
