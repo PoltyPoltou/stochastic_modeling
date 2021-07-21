@@ -4,9 +4,29 @@ std::set<CommandeType, Compare_CmdType> Probleme::commandes_set =
     std::set<CommandeType, Compare_CmdType>();
 
 Probleme::Probleme(int n_cmd, double ratio_volumineux, Livraison car) :
+    Probleme(n_cmd,
+             ratio_volumineux,
+             car,
+             {0.75, 0.2},
+             {0.3, 0.5},
+             {0, 0.5},
+             {1.86, 1.98},
+             {3.17, 3.37},
+             {0, 1.98}) {}
+
+Probleme::Probleme(int n_cmd,
+                   double ratio_volumineux,
+                   Livraison car,
+                   std::array<double, 2> stock_pfs,
+                   std::array<double, 2> stock_mag,
+                   std::array<double, 2> stock_car,
+                   std::array<double, 2> prix_prepa_pfs,
+                   std::array<double, 2> prix_prepa_mag,
+                   std::array<double, 2> prix_prepa_car) :
     nb_cmd(n_cmd),
     ratio_volu(ratio_volumineux),
     livraison_car(car) {
+    // init of the static member commandes_set
     if (Probleme::commandes_set.empty()) {
         for (int n = 1; n <= Probleme::articles_max; n++) {
             for (int h = 0; h < 24; h++) {
@@ -17,12 +37,13 @@ Probleme::Probleme(int n_cmd, double ratio_volumineux, Livraison car) :
             }
         }
     }
-    prix_preration["PFS"] = {1.86, 1.98};
-    prix_preration["Mag"] = {3.17, 3.37};
-    prix_preration["CAR"] = {0, 1.98};
-    stocks["PFS"] = {0.75, 0.2};
-    stocks["Mag"] = {0.3, 0.5};
-    stocks["CAR"] = {0, 0.5};
+
+    stocks["PFS"] = stock_pfs;
+    stocks["Mag"] = stock_mag;
+    stocks["CAR"] = stock_car;
+    prix_preration["PFS"] = prix_prepa_pfs;
+    prix_preration["Mag"] = prix_prepa_mag;
+    prix_preration["CAR"] = prix_prepa_car;
 }
 
 double Probleme::getc_quantite(CommandeType const &cmd, bool volu) const {

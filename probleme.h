@@ -33,6 +33,15 @@ class Probleme {
     static std::set<CommandeType, Compare_CmdType> commandes_set;
 
     Probleme(int n_cmd, double ratio_volumineux, Livraison car);
+    Probleme(int n_cmd,
+             double ratio_volumineux,
+             Livraison car,
+             std::array<double, 2> stock_pfs,
+             std::array<double, 2> stock_mag,
+             std::array<double, 2> stock_car,
+             std::array<double, 2> prix_prepa_pfs,
+             std::array<double, 2> prix_prepa_mag,
+             std::array<double, 2> prix_prepa_car);
 
     int get_nb_cmd() const { return nb_cmd; };
     double get_ratio_volu() const { return ratio_volu; };
