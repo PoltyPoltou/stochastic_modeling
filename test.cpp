@@ -141,78 +141,9 @@ void testLoadDataLp(std::string data_dir) {
     OsiCpxSolverInterface solver_interface;
     lp::LinearProblem lin_pb(solver_interface);
 
-    lp::Commande_Variable_map cmd_var_map = lp::load_data_in_lp(pb, lin_pb);
+    lp::load_data_in_lp(pb, lin_pb);
     lin_pb.load_problem();
     lin_pb.get_solver_interface().initialSolve();
 
-    std::map<std::string, double> set_volu, set_std;
-    std::map<std::string, double> preparation_costs(
-        {{"Mag", 0}, {"PFS", 0}, {"CAR", 0}});
-
-    std::stringstream buffer;
-    for (CommandeType cmd : Probleme::commandes_set) {
-        for (lp::Variable v : cmd_var_map.at(cmd)[0]) {
-            for (std::string lieu : LIEUX_VOLU) {
-                preparation_costs[lieu] +=
-                    pb.getc_quantite(cmd, false)
-                    * lin_pb.get_solver_interface()
-                          .getColSolution()[v.problem_idx]
-                    * get_prix_prepa_itineraire(pb, v.route, v.i,
-                                                cmd.get_nb_articles(), lieu);
-            }
-            if (lin_pb.get_solver_interface().getColSolution()[v.problem_idx]
-                > 0.001) {
-                buffer = std::stringstream();
-                buffer << v.route << ", value : ";
-                if (set_std.contains(buffer.str())) {
-                    set_std[buffer.str()] +=
-                        lin_pb.get_solver_interface()
-                            .getColSolution()[v.problem_idx]
-                        * pb.getc_quantite(cmd, false);
-                } else {
-                    set_std[buffer.str()] = lin_pb.get_solver_interface()
-                                                .getColSolution()[v.problem_idx]
-                                            * pb.getc_quantite(cmd, false);
-                }
-            }
-        }
-        for (lp::Variable v : cmd_var_map.at(cmd)[1]) {
-            for (std::string lieu : LIEUX_VOLU) {
-                preparation_costs[lieu] +=
-                    pb.getc_quantite(cmd, true)
-                    * lin_pb.get_solver_interface()
-                          .getColSolution()[v.problem_idx]
-                    * get_prix_prepa_itineraire(pb, v.route, v.i,
-                                                cmd.get_nb_articles(), lieu);
-            }
-            if (lin_pb.get_solver_interface().getColSolution()[v.problem_idx]
-                > 0.001) {
-                buffer = std::stringstream();
-                buffer << v.route << ", value : ";
-                if (set_volu.contains(buffer.str())) {
-                    set_volu[buffer.str()] +=
-                        lin_pb.get_solver_interface()
-                            .getColSolution()[v.problem_idx]
-                        * pb.getc_quantite(cmd, true);
-                } else {
-                    set_volu[buffer.str()] =
-                        lin_pb.get_solver_interface()
-                            .getColSolution()[v.problem_idx]
-                        * pb.getc_quantite(cmd, true);
-                }
-            }
-        }
-    }
-    for (auto iter : set_std) {
-        std::cout << iter.first << iter.second << std::endl;
-    }
-    std::cout << std::endl;
-
-    for (auto iter : set_volu) {
-        std::cout << iter.first << iter.second << std::endl;
-    }
-    for (auto iter : preparation_costs) {
-        std::cout << iter.first << " : " << iter.second << std::endl;
-    }
-    std::cout << lin_pb.get_solver_interface().getObjValue() << std::endl;
+    std::cout << lp::get_str_solution(pb, lin_pb);
 }

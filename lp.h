@@ -24,7 +24,7 @@ class LinearProblem {
     OsiSolverInterface &solver_interface;
     CoinPackedMatrix matrix;
     CoinPackedVector objective, col_lb, col_ub, row_lb, row_ub;
-    std::vector<std::string> var_names, constraints_names;
+    Commande_Variable_map var_map;
 
   public:
     LinearProblem(OsiSolverInterface &solver);
@@ -36,6 +36,7 @@ class LinearProblem {
     CoinPackedVector &get_col_ub() { return col_ub; };
     CoinPackedVector &get_row_lb() { return row_lb; };
     CoinPackedVector &get_row_ub() { return row_ub; };
+    Commande_Variable_map &get_var_map() { return var_map; };
     void add_var(int &idx,
                  double coef_obj,
                  double lower = 0,
@@ -44,6 +45,7 @@ class LinearProblem {
     int add_constraint(CoinPackedVector &coefs,
                        double lower = -INFINITY,
                        double upper = INFINITY);
+    double get_var_value(int col_idx) const;
     void set_coef(int row_idx, int col_idx, double value);
 
     double infinity();
@@ -60,22 +62,21 @@ struct Variable {
         problem_idx(idx) {};
 };
 
-Commande_Variable_map load_data_in_lp(Probleme const &pb,
-                                      LinearProblem &lin_pb);
+void load_data_in_lp(Probleme const &pb, LinearProblem &lin_pb);
 
-Commande_Variable_map create_variables(Probleme const &pb,
-                                       LinearProblem &lin_pb);
+void create_variables(Probleme const &pb, LinearProblem &lin_pb);
 
-void create_constraints(Probleme const &pb,
-                        LinearProblem &lin_pb,
-                        Commande_Variable_map &cmd_var_map);
+void create_constraints(Probleme const &pb, LinearProblem &lin_pb);
 
-void stock_constraint(Probleme const &pb,
-                      LinearProblem &lin_pb,
-                      Commande_Variable_map &cmd_var_map);
+void stock_constraint(Probleme const &pb, LinearProblem &lin_pb);
 
-void fullfilment_constraint(Probleme const &pb,
-                            LinearProblem &lin_pb,
-                            Commande_Variable_map &cmd_var_map);
+void fullfilment_constraint(Probleme const &pb, LinearProblem &lin_pb);
+
+std::map<std::string, double>
+    get_map_solution(Probleme const &pb, LinearProblem &lin_pb, bool volu);
+std::map<std::string, double> get_map_prep_costs(Probleme const &pb,
+                                                 LinearProblem &lin_pb);
+
+std::string get_str_solution(Probleme const &pb, LinearProblem &lin_pb);
 
 } // namespace lp
