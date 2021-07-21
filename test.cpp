@@ -70,7 +70,7 @@ void testLpInterface() {
 }
 
 void testReadRouteCsv(std::string data_dir) {
-    Probleme pb(100 * 24 * 3 * 8, 0.15, Livraison(0, 1, 13));
+    Probleme pb(26460, 0.15, Livraison(1, 13, 1));
     assert(Probleme::commandes_set.size()
            == 24 * (Probleme::delai_max - Probleme::delai_min + 1)
                   * (Probleme::articles_max));
@@ -111,13 +111,26 @@ void testReadRouteCsv(std::string data_dir) {
 
     generate_demand(pb);
     double std(0), volu(0);
+    double q_std(0), q_volu(0);
     for (CommandeType cmd : Probleme::commandes_set) {
         std += pb.get_demande()[cmd][0];
         volu += pb.get_demande()[cmd][1];
+        q_std += pb.getc_quantite(cmd, false);
+        q_volu += pb.getc_quantite(cmd, true);
     }
     assert(std == volu);
-    assert(std > 0.9999);
-    assert(std < 1.0001);
+    assert(abs(std - 1) < 0.001);
+    assert(abs(q_std + q_volu - pb.get_nb_cmd()) < 0.001);
+    assert(abs(q_volu - pb.get_ratio_volu() * pb.get_nb_cmd()) < 0.001);
+
+    std::stringstream stream;
+    for (Itineraire itin : pb.get_vec_itineraires()) {
+        stream << itin << " " << get_prix_total_itineraire(pb, itin, 0, 5)
+               << " " << get_prix_total_itineraire(pb, itin, 3, 5) << " "
+               << get_prix_total_itineraire(pb, itin, 5, 5) << std::endl;
+    }
+    stream << pb.getc_nb_articles(false) << " " << pb.getc_nb_articles(true)
+           << std::endl;
     std::cout << "---gen_data_from_csv passed---" << std::endl;
 }
 
@@ -129,13 +142,12 @@ void testLoadDataLp(std::string data_dir) {
     lp::LinearProblem lin_pb(solver_interface);
 
     lp::Commande_Variable_map cmd_var_map = lp::load_data_in_lp(pb, lin_pb);
-    std::cout << "loaded in matrix" << std::endl;
+    lin_pb.load_problem();
+    lin_pb.get_solver_interface().initialSolve();
+
     std::map<std::string, double> set_volu, set_std;
     std::map<std::string, double> preparation_costs(
         {{"Mag", 0}, {"PFS", 0}, {"CAR", 0}});
-    lin_pb.load_problem();
-    std::cout << "loaded in cplex" << std::endl;
-    lin_pb.get_solver_interface().initialSolve();
 
     std::stringstream buffer;
     for (CommandeType cmd : Probleme::commandes_set) {
