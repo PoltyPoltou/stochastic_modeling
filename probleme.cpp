@@ -31,17 +31,23 @@ double Probleme::getc_quantite(CommandeType const &cmd, bool volu) const {
 }
 
 int Probleme::getc_nb_articles(bool volu) const {
-    double nb_articles(0);
-    for (CommandeType cmd : Probleme::commandes_set) {
-        if (!volu) {
-            nb_articles += getc_quantite(cmd, false) * cmd.get_nb_articles();
-        } else {
-            nb_articles += getc_quantite(cmd, true);
-        }
+    if (volu) {
+        return nb_cmd * ratio_volu;
     }
-    return nb_articles;
-}
-// NOT TESTED
+    double articles_cmd_std(0);
+    double articles_cmd_volu(0);
+    for (CommandeType cmd : Probleme::commandes_set) {
+        // multiplications are factorised at most to increase numeric accuracy
+        articles_cmd_std +=
+            getc_demande().at(cmd)[false] * cmd.get_nb_articles();
+        articles_cmd_volu +=
+            getc_demande().at(cmd)[true] * cmd.get_nb_articles();
+        }
+    return nb_cmd
+           * (ratio_volu * articles_cmd_volu
+              + articles_cmd_std * (1 - ratio_volu));
+    }
+
 double get_prix_prepa_itineraire(
     Probleme const &pb, Itineraire &itin, int i, int n, std::string lieu) {
     int quantite = 0;
