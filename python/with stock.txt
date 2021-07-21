@@ -1,0 +1,50 @@
+nb cmd : 26460 --- partie volumineux : 0.15%
+
+Stocks : {'PFS': 0.75, 'Mag': 0.3}
+Stocks utilisés : {'PFS': 0.75, 'Mag': 0.25}
+
+Stocks volumineux : {'PFS': 0.2, 'Mag': 0.5, 'CAR': 0.5}
+Stocks volumineux utilisés : {'CAR': 0.5, 'PFS': 0.0, 'Mag': 0.5}
+
+Coûts de préparation [standard, volumnieux] (par article) : {'PFS': [1.86, 1.98], 'Mag': [3.17, 3.37], 'CAR': [0, 1.98]}
+Coûts totaux de préparation : {'PFS': 184558.5, 'Mag': 111535.52, 'CAR': 3929.31}
+
+
+trajet              	J+n	cutoff	prix	nb cmd	coût total hors préparation
+
+
+PFS---|
+      |->Mag-V->Client 
+Car-V-|               	  2	  24   	19.68	   331	  6494 €
+
+PFS---|
+      |->Mag-V->Client 
+Car-V-|               	  3	  24   	19.68	   588	 11572 €
+CAR-V->Mag-V->Client	  1	  13   	16.00	   349	  5584 €
+CAR-V->Mag-V->Client	  2	  13   	16.00	   717	 11456 €
+Mag--->Client       	  1	  24   	15.00	  1834	 27510 €
+Mag-V->Client       	  1	  24   	15.00	   974	 14595 €
+PFS--->Client       	  1	  14   	6.69	  3580	 23950 €
+PFS--->Client       	  1	  24   	7.85	  2082	 16344 €
+PFS--->Client       	  2	  14   	4.19	  4373	 18323 €
+PFS--->Client       	  2	  24   	6.69	  3124	 20893 €
+PFS--->Client       	  3	  24   	4.19	  7497	 31408 €
+PFS--->Mag-V->Client	  2	  14   	18.68	    18	   336 €
+PFS--->Mag-V->Client	  2	  24   	18.68	   257	  4801 €
+PFS--->Mag-V->Client	  3	  24   	18.68	   735	 13730 €
+
+nb cmd  (départ, arrivée, j+n, volumineux, cutoff, prix) 	 prix total 
+ 1984   ('CAR', 'Mag', 1) 1984
+  937   ('Mag', 'Client', 0, True, 15) 14055
+ 1834   ('Mag', 'Client', 1, False, 15) 27510
+ 3031   ('Mag', 'Client', 1, True, 15) 45465
+ 3580   ('PFS', 'Client', 1, False, 14, 6.69) 23950.2
+ 2082   ('PFS', 'Client', 1, False, 24, 7.85) 16343.699999999999
+ 4373   ('PFS', 'Client', 2, False, 14, 4.19) 18322.870000000003
+ 3123   ('PFS', 'Client', 2, False, 24, 6.69) 20892.870000000003
+ 7496   ('PFS', 'Client', 3, False, 24, 4.19) 31408.24
+   18   ('PFS', 'Mag', 1, False, 14, 3.68) 66.24000000000001
+ 1911   ('PFS', 'Mag', 2, False, 24, 3.68) 7032.4800000000005
+
+nombre de commande correct : True
+Fonction objectif : 507,089.84 €
