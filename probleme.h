@@ -26,6 +26,7 @@ class Probleme {
     // first key is the place,
     // second is 0 for standard 1 for volu
     std::map<CommandeType, std::array<double, 2>, Compare_CmdType> demande;
+    std::map<CommandeType, std::array<double, 2>, Compare_CmdType> quantite;
 
   public:
     static const int articles_max = 9;
@@ -80,6 +81,9 @@ class Probleme {
         get_demande() {
         return demande;
     };
+
+    void set_demande(CommandeType const &cmd, double std, double volu);
+    void compute_quantite(CommandeType const &cmd);
     std::map<CommandeType, std::array<double, 2>, Compare_CmdType> const &
         getc_demande() const {
         return demande;

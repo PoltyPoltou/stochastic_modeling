@@ -47,8 +47,12 @@ Probleme::Probleme(int n_cmd,
 }
 
 double Probleme::getc_quantite(CommandeType const &cmd, bool volu) const {
-    double ratio = volu ? ratio_volu : 1 - ratio_volu;
-    return nb_cmd * ratio * getc_demande().at(cmd)[volu];
+    return quantite.at(cmd)[volu];
+}
+
+void Probleme::compute_quantite(CommandeType const &cmd) {
+    quantite[cmd] = {nb_cmd * (1 - ratio_volu) * demande.at(cmd)[0],
+                     nb_cmd * ratio_volu * demande.at(cmd)[1]};
 }
 
 int Probleme::getc_nb_articles(bool volu) const {
@@ -67,6 +71,11 @@ int Probleme::getc_nb_articles(bool volu) const {
     return nb_cmd
            * (ratio_volu * articles_cmd_volu
               + articles_cmd_std * (1 - ratio_volu));
+}
+
+void Probleme::set_demande(CommandeType const &cmd, double std, double volu) {
+    demande[cmd] = {std, volu};
+    compute_quantite(cmd);
 }
 
 double get_prix_prepa_itineraire(

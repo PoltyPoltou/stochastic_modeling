@@ -196,7 +196,7 @@ void generate_livraison_volu(Probleme &probleme,
 
 void generate_demand(Probleme &probleme) {
     for (CommandeType cmd : Probleme::commandes_set) {
-        probleme.get_demande()[cmd] = {1. / Probleme::commandes_set.size(),
-                                       1. / Probleme::commandes_set.size()};
+        probleme.set_demande(cmd, 1. / Probleme::commandes_set.size(),
+                             1. / Probleme::commandes_set.size());
     }
 }
