@@ -5,7 +5,8 @@
 namespace lp {
 
 LinearProblem::LinearProblem(OsiSolverInterface &solver) :
-    solver_interface(solver) {}
+    solver_interface(solver),
+    matrix(false, 0, 0) {}
 
 void LinearProblem::load_problem() {
     solver_interface.loadProblem(matrix, col_lb.getElements(),
@@ -17,11 +18,13 @@ void LinearProblem::add_var(int &idx,
                             double coef_obj,
                             double lower,
                             double upper) {
-    col_lb.insert(matrix.getNumCols(), lower);
-    col_ub.insert(matrix.getNumCols(), upper == INFINITY ? infinity() : upper);
-    objective.insert(matrix.getNumCols(), coef_obj);
+
+    col_lb.insert(col_lb.getNumElements(), lower);
+    col_ub.insert(col_lb.getNumElements(),
+                  upper == INFINITY ? infinity() : upper);
+    objective.insert(col_lb.getNumElements(), coef_obj);
     matrix.appendCol(CoinPackedVector());
-    idx = matrix.getNumCols() - 1;
+    idx = col_lb.getNumElements() - 1;
 }
 
 int LinearProblem::add_constraint(double lower, double upper) {
@@ -121,54 +124,58 @@ void create_constraints(Probleme const &pb, LinearProblem &lin_pb) {
 void stock_constraint(Probleme const &pb, LinearProblem &lin_pb) {
     int nb_articles_std(pb.getc_nb_articles(false));
     int nb_articles_volu(pb.getc_nb_articles(true));
-    int constraint_sotck_pfs(lin_pb.add_constraint(
-        0, nb_articles_std * pb.getc_stocks().at("PFS")[0]));
-    int constraint_sotck_mag(lin_pb.add_constraint(
-        0, nb_articles_std * pb.getc_stocks().at("Mag")[0]));
 
+    CoinPackedVector vec_stock_pfs;
+    CoinPackedVector vec_stock_mag;
     for (CommandeType cmd : Probleme::commandes_set) {
         double quantite_std = pb.getc_quantite(cmd, false);
         double quantite_volu = pb.getc_quantite(cmd, true);
         for (Variable var : lin_pb.get_var_map().at(cmd)[0]) {
-            lin_pb.set_coef(constraint_sotck_pfs, var.problem_idx,
-                            quantite_std * var.i);
-            lin_pb.set_coef(constraint_sotck_mag, var.problem_idx,
-                            quantite_std * (cmd.get_nb_articles() - var.i));
+            vec_stock_pfs.insert(var.problem_idx, quantite_std * var.i);
+            vec_stock_mag.insert(var.problem_idx,
+                                 quantite_std
+                                     * (cmd.get_nb_articles() - var.i));
         }
         for (Variable var : lin_pb.get_var_map().at(cmd)[1]) {
-            lin_pb.set_coef(constraint_sotck_pfs, var.problem_idx,
-                            quantite_volu * var.i);
-            lin_pb.set_coef(constraint_sotck_mag, var.problem_idx,
-                            quantite_volu * (cmd.get_nb_articles() - var.i));
+            vec_stock_pfs.insert(var.problem_idx, quantite_volu * var.i);
+            vec_stock_mag.insert(var.problem_idx,
+                                 quantite_volu
+                                     * (cmd.get_nb_articles() - var.i));
         }
     }
+    lin_pb.add_constraint(vec_stock_pfs, 0,
+                          nb_articles_std * pb.getc_stocks().at("PFS")[0]);
+    lin_pb.add_constraint(vec_stock_mag, 0,
+                          nb_articles_std * pb.getc_stocks().at("Mag")[0]);
 
     for (std::string lieu : LIEUX_VOLU) {
         double stock_volu_max = pb.getc_stocks().at(lieu)[1] * nb_articles_volu;
-        int constraint_stock_volu(lin_pb.add_constraint(0, stock_volu_max));
+        CoinPackedVector vec_constraint_stock_volu;
         for (CommandeType cmd : Probleme::commandes_set) {
             double quantite_volu = pb.getc_quantite(cmd, true);
             for (Variable var : lin_pb.get_var_map().at(cmd)[1]) {
                 if (var.route.get_depart_volu() == lieu) {
-                    lin_pb.set_coef(constraint_stock_volu, var.problem_idx,
-                                    quantite_volu);
+                    vec_constraint_stock_volu.insert(var.problem_idx,
+                                                     quantite_volu);
                 }
             }
         }
+        lin_pb.add_constraint(vec_constraint_stock_volu, 0, stock_volu_max);
     }
 }
 
 void fullfilment_constraint(Probleme const &pb, LinearProblem &lin_pb) {
     for (CommandeType cmd : Probleme::commandes_set) {
-        int constraint_fullfillment_std(lin_pb.add_constraint(1, 1));
-        int constraint_fullfillment_volu(lin_pb.add_constraint(1, 1));
-
+        CoinPackedVector vec_constraint_fullfillment_std;
+        CoinPackedVector vec_constraint_fullfillment_volu;
         for (Variable var : lin_pb.get_var_map().at(cmd)[0]) {
-            lin_pb.set_coef(constraint_fullfillment_std, var.problem_idx, 1);
+            vec_constraint_fullfillment_std.insert(var.problem_idx, 1);
         }
         for (Variable var : lin_pb.get_var_map().at(cmd)[1]) {
-            lin_pb.set_coef(constraint_fullfillment_volu, var.problem_idx, 1);
+            vec_constraint_fullfillment_volu.insert(var.problem_idx, 1);
         }
+        lin_pb.add_constraint(vec_constraint_fullfillment_std, 1, 1);
+        lin_pb.add_constraint(vec_constraint_fullfillment_volu, 1, 1);
     }
 }
 
