@@ -65,11 +65,25 @@ double LinearProblem::get_var_value(int col_idx) const {
     }
 }
 
-void load_data_in_lp(Probleme const &pb, LinearProblem &lin_pb) {
-    create_variables(pb, lin_pb);
-    create_constraints(pb, lin_pb);
+void load_data_in_lp(Probleme const &pb,
+                     LinearProblem &lin_pb,
+                     bool stock_variables) {
+    create_variables(pb, lin_pb, stock_variables);
+    create_constraints(pb, lin_pb, stock_variables);
 }
-void create_variables(Probleme const &pb, LinearProblem &lin_pb) {
+void create_variables(Probleme const &pb,
+                      LinearProblem &lin_pb,
+                      bool stock_variables) {
+    if (stock_variables) {
+        int idx;
+        for (std::string lieu : LIEUX_VOLU) {
+            lin_pb.add_var(idx, 0, 0, 1);
+            lin_pb.set_stock_var(lieu, false, idx);
+            lin_pb.add_var(idx, 0, 0, 1);
+            lin_pb.set_stock_var(lieu, true, idx);
+        }
+    }
+
     Commande_Variable_map &demande_variables_map = lin_pb.get_var_map();
     for (CommandeType cmd : Probleme::commandes_set) {
 
@@ -116,12 +130,16 @@ void create_variables(Probleme const &pb, LinearProblem &lin_pb) {
     }
 }
 
-void create_constraints(Probleme const &pb, LinearProblem &lin_pb) {
+void create_constraints(Probleme const &pb,
+                        LinearProblem &lin_pb,
+                        bool stock_variables) {
     fullfilment_constraint(pb, lin_pb);
-    stock_constraint(pb, lin_pb);
+    stock_constraint(pb, lin_pb, stock_variables);
 }
 
-void stock_constraint(Probleme const &pb, LinearProblem &lin_pb) {
+void stock_constraint(Probleme const &pb,
+                      LinearProblem &lin_pb,
+                      bool stock_variables) {
     int nb_articles_std(pb.getc_nb_articles(false));
     int nb_articles_volu(pb.getc_nb_articles(true));
 
@@ -143,13 +161,30 @@ void stock_constraint(Probleme const &pb, LinearProblem &lin_pb) {
                                      * (cmd.get_nb_articles() - var.i));
         }
     }
-    lin_pb.add_constraint(vec_stock_pfs, 0,
-                          nb_articles_std * pb.getc_stocks().at("PFS")[0]);
-    lin_pb.add_constraint(vec_stock_mag, 0,
-                          nb_articles_std * pb.getc_stocks().at("Mag")[0]);
+    if (stock_variables) {
+        CoinPackedVector vec_stocks_var_std, vec_stocks_var_volu;
+        for (std::string lieu : LIEUX_VOLU) {
+            vec_stocks_var_std.insert(lin_pb.get_stock_var(lieu, false), 1);
+            vec_stocks_var_volu.insert(lin_pb.get_stock_var(lieu, true), 1);
+        }
+        lin_pb.add_constraint(vec_stocks_var_std, 0, 1);
+        lin_pb.add_constraint(vec_stocks_var_volu, 0, 1);
+
+        vec_stock_pfs.insert(lin_pb.get_stock_var("PFS", false),
+                             -nb_articles_std);
+        vec_stock_mag.insert(lin_pb.get_stock_var("Mag", false),
+                             -nb_articles_std);
+        lin_pb.add_constraint(vec_stock_pfs, -lin_pb.infinity(), 0);
+        lin_pb.add_constraint(vec_stock_mag, -lin_pb.infinity(), 0);
+
+    } else {
+        lin_pb.add_constraint(vec_stock_pfs, 0,
+                              nb_articles_std * pb.getc_stocks().at("PFS")[0]);
+        lin_pb.add_constraint(vec_stock_mag, 0,
+                              nb_articles_std * pb.getc_stocks().at("Mag")[0]);
+    }
 
     for (std::string lieu : LIEUX_VOLU) {
-        double stock_volu_max = pb.getc_stocks().at(lieu)[1] * nb_articles_volu;
         CoinPackedVector vec_constraint_stock_volu;
         for (CommandeType cmd : Probleme::commandes_set) {
             double quantite_volu = pb.getc_quantite(cmd, true);
@@ -160,7 +195,16 @@ void stock_constraint(Probleme const &pb, LinearProblem &lin_pb) {
                 }
             }
         }
-        lin_pb.add_constraint(vec_constraint_stock_volu, 0, stock_volu_max);
+        if (stock_variables) {
+            vec_constraint_stock_volu.insert(lin_pb.get_stock_var(lieu, true),
+                                             -nb_articles_volu);
+            lin_pb.add_constraint(vec_constraint_stock_volu, -lin_pb.infinity(),
+                                  0);
+        } else {
+            double stock_volu_max =
+                pb.getc_stocks().at(lieu)[1] * nb_articles_volu;
+            lin_pb.add_constraint(vec_constraint_stock_volu, 0, stock_volu_max);
+        }
     }
 }
 
@@ -238,12 +282,21 @@ std::string get_str_solution(Probleme const &pb, LinearProblem &lin_pb) {
         get_map_solution(pb, lin_pb, true));
     std::map<std::string, double> preparation_costs(
         get_map_prep_costs(pb, lin_pb));
+    std::map<std::string, std::array<double, 2>> stock_var_values;
+    for (auto iter : lin_pb.get_stock_var_map()) {
+        stock_var_values[iter.first][false] =
+            lin_pb.get_var_value(iter.second[false]);
+        stock_var_values[iter.first][true] =
+            lin_pb.get_var_value(iter.second[true]);
+    }
     std::stringstream buffer;
     buffer << "nb cmd : " << pb.get_nb_cmd()
            << ", ratio volu : " << pb.get_ratio_volu() << std::endl;
     buffer << std::endl;
 
     buffer << "stocks dispo (std,volu) : " << pb.getc_stocks() << std::endl;
+    buffer << std::endl;
+    buffer << "stocks variables (std,volu) : " << stock_var_values << std::endl;
     buffer << std::endl;
 
     buffer << "cout de préparation (std,volu) : " << pb.getc_prix_preration()

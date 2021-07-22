@@ -6,6 +6,7 @@
 #include "probleme.h"
 #include <array>
 #include <cmath>
+#include <unordered_map>
 #include <vector>
 
 namespace lp {
@@ -25,6 +26,7 @@ class LinearProblem {
     CoinPackedMatrix matrix;
     CoinPackedVector objective, col_lb, col_ub, row_lb, row_ub;
     Commande_Variable_map var_map;
+    std::map<std::string, std::array<int, 2>> stock_var_map;
 
   public:
     LinearProblem(OsiSolverInterface &solver);
@@ -37,6 +39,15 @@ class LinearProblem {
     CoinPackedVector &get_row_lb() { return row_lb; };
     CoinPackedVector &get_row_ub() { return row_ub; };
     Commande_Variable_map &get_var_map() { return var_map; };
+    std::map<std::string, std::array<int, 2>> get_stock_var_map() const {
+        return stock_var_map;
+    };
+    void set_stock_var(std::string lieu, bool volu, int idx) {
+        stock_var_map[lieu][volu] = idx;
+    }
+    int get_stock_var(std::string lieu, bool volu) const {
+        return stock_var_map.at(lieu).at(volu);
+    }
     void add_var(int &idx,
                  double coef_obj,
                  double lower = 0,
@@ -62,13 +73,21 @@ struct Variable {
         problem_idx(idx) {};
 };
 
-void load_data_in_lp(Probleme const &pb, LinearProblem &lin_pb);
+void load_data_in_lp(Probleme const &pb,
+                     LinearProblem &lin_pb,
+                     bool stock_variables = false);
 
-void create_variables(Probleme const &pb, LinearProblem &lin_pb);
+void create_variables(Probleme const &pb,
+                      LinearProblem &lin_pb,
+                      bool stock_variables);
 
-void create_constraints(Probleme const &pb, LinearProblem &lin_pb);
+void create_constraints(Probleme const &pb,
+                        LinearProblem &lin_pb,
+                        bool stock_variables);
 
-void stock_constraint(Probleme const &pb, LinearProblem &lin_pb);
+void stock_constraint(Probleme const &pb,
+                      LinearProblem &lin_pb,
+                      bool stock_variables);
 
 void fullfilment_constraint(Probleme const &pb, LinearProblem &lin_pb);
 
