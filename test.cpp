@@ -140,10 +140,25 @@ void testLoadDataLp(std::string data_dir) {
 
     OsiCpxSolverInterface solver_interface;
     lp::LinearProblem lin_pb(solver_interface);
-
-    lp::load_data_in_lp(pb, lin_pb);
+    lp::load_data_in_lp(pb, lin_pb, false);
     lin_pb.load_problem();
     lin_pb.get_solver_interface().initialSolve();
+    if (abs(507090 - lin_pb.get_solver_interface().getObjValue()) >= 1) {
+        std::cout << lp::get_str_solution(pb, lin_pb);
+    }
+    assert(abs(507090 - lin_pb.get_solver_interface().getObjValue()) < 1);
+    std::cout << "---load_data_in_lp w/o stock var passed---" << std::endl;
 
-    std::cout << lp::get_str_solution(pb, lin_pb);
+    solver_interface = OsiCpxSolverInterface();
+    lp::LinearProblem lin_pb_stock_var(solver_interface);
+    lp::load_data_in_lp(pb, lin_pb_stock_var, true);
+    lin_pb_stock_var.load_problem();
+    lin_pb_stock_var.get_solver_interface().initialSolve();
+    if (abs(457711 - lin_pb_stock_var.get_solver_interface().getObjValue())
+        >= 1) {
+        std::cout << lp::get_str_solution(pb, lin_pb_stock_var);
+    }
+    assert(abs(457711 - lin_pb_stock_var.get_solver_interface().getObjValue())
+           < 1);
+    std::cout << "---load_data_in_lp w/ stock var passed---" << std::endl;
 }
