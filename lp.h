@@ -85,6 +85,8 @@ void create_constraints(Probleme const &pb,
                         LinearProblem &lin_pb,
                         bool stock_variables);
 
+void stock_var_constraint(LinearProblem &lin_pb);
+
 void stock_constraint(Probleme const &pb,
                       LinearProblem &lin_pb,
                       bool stock_variables);

@@ -70,6 +70,7 @@ void load_data_in_lp(Probleme const &pb,
                      bool stock_variables) {
     create_variables(pb, lin_pb, stock_variables);
     create_constraints(pb, lin_pb, stock_variables);
+    lin_pb.load_problem();
 }
 void create_variables(Probleme const &pb,
                       LinearProblem &lin_pb,
@@ -133,8 +134,21 @@ void create_variables(Probleme const &pb,
 void create_constraints(Probleme const &pb,
                         LinearProblem &lin_pb,
                         bool stock_variables) {
+    if (stock_variables) {
+        stock_var_constraint(lin_pb);
+    }
     fullfilment_constraint(pb, lin_pb);
     stock_constraint(pb, lin_pb, stock_variables);
+}
+
+void stock_var_constraint(LinearProblem &lin_pb) {
+    CoinPackedVector vec_stocks_var_std, vec_stocks_var_volu;
+    for (std::string lieu : LIEUX_VOLU) {
+        vec_stocks_var_std.insert(lin_pb.get_stock_var(lieu, false), 1);
+        vec_stocks_var_volu.insert(lin_pb.get_stock_var(lieu, true), 1);
+    }
+    lin_pb.add_constraint(vec_stocks_var_std, 0, 1);
+    lin_pb.add_constraint(vec_stocks_var_volu, 0, 1);
 }
 
 void stock_constraint(Probleme const &pb,
@@ -162,14 +176,6 @@ void stock_constraint(Probleme const &pb,
         }
     }
     if (stock_variables) {
-        CoinPackedVector vec_stocks_var_std, vec_stocks_var_volu;
-        for (std::string lieu : LIEUX_VOLU) {
-            vec_stocks_var_std.insert(lin_pb.get_stock_var(lieu, false), 1);
-            vec_stocks_var_volu.insert(lin_pb.get_stock_var(lieu, true), 1);
-        }
-        lin_pb.add_constraint(vec_stocks_var_std, 0, 1);
-        lin_pb.add_constraint(vec_stocks_var_volu, 0, 1);
-
         vec_stock_pfs.insert(lin_pb.get_stock_var("PFS", false),
                              -nb_articles_std);
         vec_stock_mag.insert(lin_pb.get_stock_var("Mag", false),
