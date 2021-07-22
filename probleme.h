@@ -12,6 +12,7 @@ class Probleme {
 
   private:
     int nb_cmd;
+    int nb_cmd_stochastic;
     double ratio_volu;
     std::vector<Itineraire> vec_itineraires;
     std::vector<Livraison> vec_livraison_volu_mag;
@@ -45,6 +46,8 @@ class Probleme {
              std::array<double, 2> prix_prepa_car);
 
     int get_nb_cmd() const { return nb_cmd; };
+    int get_nb_cmd_stochastic() const { return nb_cmd_stochastic; };
+    void set_nb_cmd_stochastic(int n) { nb_cmd_stochastic = n; };
     double get_ratio_volu() const { return ratio_volu; };
 
     Livraison get_livraison_car() { return livraison_car; };

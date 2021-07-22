@@ -7,6 +7,7 @@
 #include "data.h"
 #include "lp.h"
 #include "probleme.h"
+#include "stochastic.h"
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -17,6 +18,7 @@ void testall(std::string data_dir) {
     testLpInterface();
     testReadRouteCsv(data_dir);
     testLoadDataLp(data_dir);
+    testStochastic(data_dir);
 }
 
 void testCsv(std::string data_dir) {
@@ -159,4 +161,14 @@ void testLoadDataLp(std::string data_dir) {
     assert(abs(457711 - lin_pb_stock_var.get_solver_interface().getObjValue())
            < 1);
     std::cout << "---load_data_in_lp w/ stock var passed---" << std::endl;
+}
+
+void testStochastic(std::string data_dir) {
+    OsiCpxSolverInterface solver;
+    lp::LinearProblem main_lp(stochastic_problem(data_dir, solver));
+    Probleme pb(26460, 0.15, Livraison(1, 13, 1));
+    read_and_gen_data_from_csv(pb, data_dir);
+    main_lp.load_problem();
+    main_lp.get_solver_interface().initialSolve();
+    std::cout << lp::get_str_solution(pb, main_lp);
 }

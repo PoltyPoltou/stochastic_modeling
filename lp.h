@@ -48,6 +48,9 @@ class LinearProblem {
     int get_stock_var(std::string lieu, bool volu) const {
         return stock_var_map.at(lieu).at(volu);
     }
+    void set_stock_map(std::map<std::string, std::array<int, 2>> const &map) {
+        stock_var_map = map;
+    }
     void add_var(int &idx,
                  double coef_obj,
                  double lower = 0,
@@ -77,13 +80,15 @@ void load_data_in_lp(Probleme const &pb,
                      LinearProblem &lin_pb,
                      bool stock_variables = false);
 
+void create_stock_variables(LinearProblem &lin_pb, double obj_coef = 0);
+
 void create_variables(Probleme const &pb,
                       LinearProblem &lin_pb,
-                      bool stock_variables);
+                      bool stock_variables = false);
 
 void create_constraints(Probleme const &pb,
                         LinearProblem &lin_pb,
-                        bool stock_variables);
+                        bool stock_variables = false);
 
 void stock_var_constraint(LinearProblem &lin_pb);
 

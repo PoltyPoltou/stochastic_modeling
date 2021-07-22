@@ -30,6 +30,8 @@ livraison.h
 commandetype.h
 lp.cpp
 lp.h
+stochastic.cpp
+stochastic.h
 utils.h
 const.h
 )

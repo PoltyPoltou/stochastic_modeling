@@ -7,7 +7,6 @@ namespace lp {
 LinearProblem::LinearProblem(OsiSolverInterface &solver) :
     solver_interface(solver),
     matrix(false, 0, 0) {}
-
 void LinearProblem::load_problem() {
     solver_interface.loadProblem(matrix, col_lb.getElements(),
                                  col_ub.getElements(), objective.getElements(),
@@ -72,19 +71,22 @@ void load_data_in_lp(Probleme const &pb,
     create_constraints(pb, lin_pb, stock_variables);
     lin_pb.load_problem();
 }
+void create_stock_variables(LinearProblem &lin_pb, double obj_coef) {
+    int idx;
+    for (std::string lieu : LIEUX) {
+        lin_pb.add_var(idx, obj_coef, 0, 1);
+        lin_pb.set_stock_var(lieu, false, idx);
+        lin_pb.add_var(idx, obj_coef, 0, 1);
+        lin_pb.set_stock_var(lieu, true, idx);
+    }
+}
+
 void create_variables(Probleme const &pb,
                       LinearProblem &lin_pb,
                       bool stock_variables) {
     if (stock_variables) {
-        int idx;
-        for (std::string lieu : LIEUX) {
-            lin_pb.add_var(idx, 0, 0, 1);
-            lin_pb.set_stock_var(lieu, false, idx);
-            lin_pb.add_var(idx, 0, 0, 1);
-            lin_pb.set_stock_var(lieu, true, idx);
-        }
+        create_stock_variables(lin_pb);
     }
-
     Commande_Variable_map &demande_variables_map = lin_pb.get_var_map();
     for (CommandeType cmd : Probleme::commandes_set) {
 
