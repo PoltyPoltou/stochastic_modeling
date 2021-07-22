@@ -1,0 +1,67 @@
+nb cmd : 26460 --- partie volumineux : 0.15%
+
+Stocks : {'PFS': PFS, 'Mag': Mag}
+Stocks utilisés : {'PFS': 0.98, 'Mag': 0.02}
+
+Stocks volumineux : {'PFS': PFS_volu, 'Mag': Mag_volu, 'CAR': CAR_volu}
+Stocks volumineux utilisés : {'CAR': 0.85, 'PFS': 0.0, 'Mag': 0.15}
+
+Coûts de préparation [standard, volumnieux] (par article) : {'PFS': [1.86, 1.98], 'Mag': [3.17, 3.37], 'CAR': [0, 1.98]}
+Coûts totaux de préparation : {'PFS': 240028.58, 'Mag': 12353.51, 'CAR': 6658.0}
+
+
+trajet              	J+n	cutoff	prix	nb cmd	coût total hors préparation
+
+
+PFS---|
+      |->Mag-V->Client 
+Car-V-|               	  1	  13   	19.68	   557	 10962 €
+
+PFS---|
+      |->Mag-V->Client 
+Car-V-|               	  2	  13   	19.68	   270	  5294 €
+
+PFS---|
+      |->Mag-V->Client 
+Car-V-|               	  2	  24   	19.68	   894	 17594 €
+
+PFS---|
+      |->Mag-V->Client 
+Car-V-|               	  3	  24   	19.68	  1323	 26037 €
+CAR-V->Mag-V->Client	  1	  13   	16.00	   159	  2544 €
+CAR-V->Mag-V->Client	  2	  13   	16.00	   159	  2544 €
+Mag-V->Client       	  1	  24   	15.00	   564	  8445 €
+PFS--->Client       	  1	  14   	6.69	  4373	 29255 €
+PFS--->Client       	  1	  24   	7.85	  3124	 24516 €
+PFS--->Client       	  2	  14   	4.19	  4373	 18323 €
+PFS--->Client       	  2	  24   	6.69	  3124	 20893 €
+PFS--->Client       	  3	  24   	4.19	  7497	 31408 €
+PFS--->Mag--->Client	  1	  14   	18.68	    -0	     0 €
+PFS--->Mag--->Client	  2	  14   	18.68	    -0	     0 €
+PFS--->Mag--->Client	  2	  24   	18.68	    -0	     0 €
+PFS--->Mag-V->Client	  1	  14   	18.68	    43	   785 €
+
+nb cmd  (départ, arrivée, j+n, volumineux, cutoff, prix) 	 prix total 
+ 3362   ('CAR', 'Mag', 1) 3362
+    0   ('Mag', 'Client', 0, False, 15) 0
+ 1653   ('Mag', 'Client', 0, True, 15) 24795
+    0   ('Mag', 'Client', 1, False, 15) 0
+ 2315   ('Mag', 'Client', 1, True, 15) 34725
+ 4373   ('PFS', 'Client', 1, False, 14, 6.69) 29255.370000000003
+ 3123   ('PFS', 'Client', 1, False, 24, 7.85) 24515.55
+ 4373   ('PFS', 'Client', 2, False, 14, 4.19) 18322.870000000003
+ 3123   ('PFS', 'Client', 2, False, 24, 6.69) 20892.870000000003
+ 7496   ('PFS', 'Client', 3, False, 24, 4.19) 31408.24
+  826   ('PFS', 'Mag', 1, False, 13, 3.68) 3039.6800000000003
+   42   ('PFS', 'Mag', 1, False, 14, 3.68) 154.56
+ 2217   ('PFS', 'Mag', 2, False, 24, 3.68) 8158.56
+
+nombre de commande correct : True
+Fonction objectif : 457,710.59 €
+
+variables de stocks
+PFS 0.97541667
+Mag 0.024583333
+PFS_volu 0.0
+Mag_volu 0.15277778
+CAR_volu 0.84722222
