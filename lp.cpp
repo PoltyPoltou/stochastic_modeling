@@ -221,7 +221,7 @@ std::map<std::string, double> get_map_prep_costs(Probleme const &pb,
         for (lp::Variable v : lin_pb.get_var_map().at(cmd)[1]) {
             for (std::string lieu : LIEUX_VOLU) {
                 preparation_costs[lieu] +=
-                    pb.getc_quantite(cmd, false)
+                    pb.getc_quantite(cmd, true)
                     * lin_pb.get_var_value(v.problem_idx)
                     * get_prix_prepa_itineraire(pb, v.route, v.i,
                                                 cmd.get_nb_articles(), lieu);
