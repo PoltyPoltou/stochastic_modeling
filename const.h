@@ -1,3 +1,3 @@
 #pragma once
-#define LIEUX_VOLU \
+#define LIEUX \
     { "PFS", "Mag", "CAR" }

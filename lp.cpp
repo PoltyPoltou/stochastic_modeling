@@ -77,7 +77,7 @@ void create_variables(Probleme const &pb,
                       bool stock_variables) {
     if (stock_variables) {
         int idx;
-        for (std::string lieu : LIEUX_VOLU) {
+        for (std::string lieu : LIEUX) {
             lin_pb.add_var(idx, 0, 0, 1);
             lin_pb.set_stock_var(lieu, false, idx);
             lin_pb.add_var(idx, 0, 0, 1);
@@ -108,7 +108,7 @@ void create_variables(Probleme const &pb,
                             Variable(r, i, idx));
                     }
                 } else {
-                    for (std::string lieu : LIEUX_VOLU) {
+                    for (std::string lieu : LIEUX) {
                         if (r.get_depart_volu() == lieu
                             && cmd.get_delai() == r.get_delai()
                             && r.is_possible(i, cmd.get_nb_articles(),
@@ -143,7 +143,7 @@ void create_constraints(Probleme const &pb,
 
 void stock_var_constraint(LinearProblem &lin_pb) {
     CoinPackedVector vec_stocks_var_std, vec_stocks_var_volu;
-    for (std::string lieu : LIEUX_VOLU) {
+    for (std::string lieu : LIEUX) {
         vec_stocks_var_std.insert(lin_pb.get_stock_var(lieu, false), 1);
         vec_stocks_var_volu.insert(lin_pb.get_stock_var(lieu, true), 1);
     }
@@ -190,7 +190,7 @@ void stock_constraint(Probleme const &pb,
                               nb_articles_std * pb.getc_stocks().at("Mag")[0]);
     }
 
-    for (std::string lieu : LIEUX_VOLU) {
+    for (std::string lieu : LIEUX) {
         CoinPackedVector vec_constraint_stock_volu;
         for (CommandeType cmd : Probleme::commandes_set) {
             double quantite_volu = pb.getc_quantite(cmd, true);
@@ -260,7 +260,7 @@ std::map<std::string, double> get_map_prep_costs(Probleme const &pb,
         {{"Mag", 0}, {"PFS", 0}, {"CAR", 0}});
     for (CommandeType cmd : Probleme::commandes_set) {
         for (lp::Variable v : lin_pb.get_var_map().at(cmd)[0]) {
-            for (std::string lieu : LIEUX_VOLU) {
+            for (std::string lieu : LIEUX) {
                 preparation_costs[lieu] +=
                     pb.getc_quantite(cmd, false)
                     * lin_pb.get_var_value(v.problem_idx)
@@ -269,7 +269,7 @@ std::map<std::string, double> get_map_prep_costs(Probleme const &pb,
             }
         }
         for (lp::Variable v : lin_pb.get_var_map().at(cmd)[1]) {
-            for (std::string lieu : LIEUX_VOLU) {
+            for (std::string lieu : LIEUX) {
                 preparation_costs[lieu] +=
                     pb.getc_quantite(cmd, true)
                     * lin_pb.get_var_value(v.problem_idx)
