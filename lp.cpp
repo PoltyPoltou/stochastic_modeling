@@ -185,11 +185,6 @@ void LpDecatWithStock::stock_constraint(Probleme const &pb) {
     int nb_articles_volu(pb.getc_nb_articles(true));
     CoinPackedVector vec_stock_pfs, vec_stock_mag;
     quantities_from_pfs_and_mag(pb, *this, vec_stock_pfs, vec_stock_mag);
-    CoinPackedVector vec_stocks_var_std, vec_stocks_var_volu;
-    for (std::string lieu : LIEUX) {
-        vec_stocks_var_std.insert(get_stock_var(lieu, false), 1);
-        vec_stocks_var_volu.insert(get_stock_var(lieu, true), 1);
-    }
 
     vec_stock_pfs.insert(this->get_stock_var("PFS", false), -nb_articles_std);
     vec_stock_mag.insert(this->get_stock_var("Mag", false), -nb_articles_std);
