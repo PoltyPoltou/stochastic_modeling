@@ -142,7 +142,8 @@ void testLoadDataLp(std::string data_dir) {
 
     OsiCpxSolverInterface solver_interface;
     lp::LinearProblem lin_pb(solver_interface);
-    lp::load_data_in_lp(pb, lin_pb, false);
+    lin_pb.load_data_in_lp(pb);
+    lin_pb.load_problem();
     lin_pb.get_solver_interface().initialSolve();
     if (abs(507090 - lin_pb.get_solver_interface().getObjValue()) >= 1) {
         std::cout << lp::get_str_solution(pb, lin_pb);
@@ -151,8 +152,9 @@ void testLoadDataLp(std::string data_dir) {
     std::cout << "---load_data_in_lp w/o stock var passed---" << std::endl;
 
     solver_interface = OsiCpxSolverInterface();
-    lp::LinearProblem lin_pb_stock_var(solver_interface);
-    lp::load_data_in_lp(pb, lin_pb_stock_var, true);
+    lp::LpDecatWithStock lin_pb_stock_var(solver_interface);
+    lin_pb_stock_var.load_data_in_lp(pb);
+    lin_pb_stock_var.load_problem();
     lin_pb_stock_var.get_solver_interface().initialSolve();
     if (abs(457711 - lin_pb_stock_var.get_solver_interface().getObjValue())
         >= 1) {
@@ -165,7 +167,7 @@ void testLoadDataLp(std::string data_dir) {
 
 void testStochastic(std::string data_dir) {
     OsiCpxSolverInterface solver;
-    lp::LinearProblem main_lp(stochastic_problem(data_dir, solver));
+    lp::LpDecatWithStock main_lp(stochastic_problem(data_dir, solver));
     Probleme pb(26460, 0.15, Livraison(1, 13, 1));
     read_and_gen_data_from_csv(pb, data_dir);
     main_lp.load_problem();
