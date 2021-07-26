@@ -88,6 +88,22 @@ class Probleme {
     int getc_nb_articles(bool volu = false) const;
 };
 
+class ProblemeStochastique : public Probleme {
+  private:
+    int nb_cmd_mesured;
+
+  public:
+    ProblemeStochastique(int n_cmd, double ratio_volumineux, Livraison car) :
+        Probleme(n_cmd, ratio_volumineux, car),
+        nb_cmd_mesured(n_cmd) {};
+
+    int get_nb_cmd_mesured() const { return nb_cmd_mesured; };
+    void set_nb_cmd_mesured(int n) { nb_cmd_mesured = n; };
+    double getc_quantite_mesured(CommandeType const &cmd,
+                                 bool volu = false) const;
+    int getc_nb_articles_mesured(bool volu = false) const;
+};
+
 double get_prix_total_itineraire(Probleme const &pb,
                                  Itineraire &itin,
                                  int i,

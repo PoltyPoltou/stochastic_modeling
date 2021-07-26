@@ -76,6 +76,15 @@ void Probleme::set_demande(CommandeType const &cmd, double std, double volu) {
     compute_quantite(cmd);
 }
 
+double ProblemeStochastique::getc_quantite_mesured(CommandeType const &cmd,
+                                                   bool volu) const {
+    return getc_quantite(cmd, volu) * nb_cmd_mesured / get_nb_cmd();
+}
+
+int ProblemeStochastique::getc_nb_articles_mesured(bool volu) const {
+    return getc_nb_articles(volu) * nb_cmd_mesured / get_nb_cmd();
+}
+
 double get_prix_prepa_itineraire(
     Probleme const &pb, Itineraire &itin, int i, int n, std::string lieu) {
     int quantite = 0;

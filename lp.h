@@ -53,6 +53,10 @@ class LinearProblem : public LinearInterface {
   private:
     Commande_Variable_map var_map;
 
+  protected:
+    void create_variables(Commande_Variable_map &demande_variables_map,
+                          Probleme const &pb);
+
   public:
     LinearProblem(OsiSolverInterface &solver);
     Commande_Variable_map &get_var_map() { return var_map; };
@@ -60,7 +64,7 @@ class LinearProblem : public LinearInterface {
         return var_map.at(cmd).at(volu);
     };
     virtual void load_data_in_lp(Probleme const &pb);
-    void create_variables(Probleme const &pb);
+    virtual void create_variables(Probleme const &pb);
     virtual void stock_constraint(Probleme const &pb);
     void create_constraints(Probleme const &pb);
     void fullfilment_constraint(Probleme const &pb);
@@ -74,6 +78,7 @@ class LpDecatWithStock : public LinearProblem {
     LpDecatWithStock(OsiSolverInterface &solver);
     virtual void load_data_in_lp(Probleme const &pb);
     virtual void stock_constraint(Probleme const &pb);
+    virtual void stock_constraint(ProblemeStochastique const &pb);
     void create_stock_variables(double coef);
 
     std::map<std::string, std::array<int, 2>> get_stock_var_map() const {
@@ -85,6 +90,16 @@ class LpDecatWithStock : public LinearProblem {
     int get_stock_var(std::string lieu, bool volu) const {
         return stock_var_map.at(lieu).at(volu);
     }
+};
+
+class LpDecatScenarios : public LpDecatWithStock {
+  private:
+    std::map<int, Commande_Variable_map> scenario_var_map;
+
+  public:
+    LpDecatScenarios(OsiSolverInterface &solver);
+    virtual void create_variables(ProblemeStochastique const &pb);
+    void set_scenario(int scenario);
 };
 
 struct Variable {
@@ -102,8 +117,16 @@ std::map<std::string, double>
     get_map_solution(Probleme const &pb, LinearProblem &lin_pb, bool volu);
 std::map<std::string, double> get_map_prep_costs(Probleme const &pb,
                                                  LinearProblem &lin_pb);
+std::map<std::string, double> get_map_solution(ProblemeStochastique const &pb,
+                                               LpDecatScenarios &lin_pb,
+                                               bool volu);
+std::map<std::string, double> get_map_prep_costs(ProblemeStochastique const &pb,
+                                                 LpDecatScenarios &lin_pb);
 
 std::string get_str_solution(Probleme const &pb, LinearProblem &lin_pb);
 std::string get_str_solution(Probleme const &pb, LpDecatWithStock &lin_pb);
+std::string get_str_solution(ProblemeStochastique &pb,
+                             LpDecatScenarios &lin_pb,
+                             int scenario);
 
 } // namespace lp

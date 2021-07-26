@@ -167,10 +167,10 @@ void testLoadDataLp(std::string data_dir) {
 
 void testStochastic(std::string data_dir) {
     OsiCpxSolverInterface solver;
-    lp::LpDecatWithStock main_lp(stochastic_problem(data_dir, solver));
-    Probleme pb(26460, 0.15, Livraison(1, 13, 1));
+    ProblemeStochastique pb(26460, 0.15, Livraison(1, 13, 1));
     read_and_gen_data_from_csv(pb, data_dir);
+    lp::LpDecatScenarios main_lp(stochastic_problem(data_dir, solver, pb));
     main_lp.load_problem();
     main_lp.get_solver_interface().initialSolve();
-    std::cout << lp::get_str_solution(pb, main_lp);
+    std::cout << lp::get_str_solution(pb, main_lp, 23814);
 }
