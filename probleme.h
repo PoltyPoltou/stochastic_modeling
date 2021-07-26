@@ -12,7 +12,6 @@ class Probleme {
 
   private:
     int nb_cmd;
-    int nb_cmd_stochastic;
     double ratio_volu;
     std::vector<Itineraire> vec_itineraires;
     std::vector<Livraison> vec_livraison_volu_mag;
@@ -46,8 +45,6 @@ class Probleme {
              std::array<double, 2> prix_prepa_car);
 
     int get_nb_cmd() const { return nb_cmd; };
-    int get_nb_cmd_stochastic() const { return nb_cmd_stochastic; };
-    void set_nb_cmd_stochastic(int n) { nb_cmd_stochastic = n; };
     double get_ratio_volu() const { return ratio_volu; };
 
     Livraison get_livraison_car() { return livraison_car; };
@@ -80,17 +77,12 @@ class Probleme {
         return prix_preration;
     };
 
-    std::map<CommandeType, std::array<double, 2>, Compare_CmdType> &
-        get_demande() {
-        return demande;
+    double getc_demande(CommandeType const &cmd, bool volu) const {
+        return demande.at(cmd).at(volu);
     };
 
     void set_demande(CommandeType const &cmd, double std, double volu);
     void compute_quantite(CommandeType const &cmd);
-    std::map<CommandeType, std::array<double, 2>, Compare_CmdType> const &
-        getc_demande() const {
-        return demande;
-    };
 
     double getc_quantite(CommandeType const &cmd, bool volu = false) const;
     int getc_nb_articles(bool volu = false) const;

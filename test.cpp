@@ -115,8 +115,8 @@ void testReadRouteCsv(std::string data_dir) {
     double std(0), volu(0);
     double q_std(0), q_volu(0);
     for (CommandeType cmd : Probleme::commandes_set) {
-        std += pb.get_demande()[cmd][0];
-        volu += pb.get_demande()[cmd][1];
+        std += pb.getc_demande(cmd, false);
+        volu += pb.getc_demande(cmd, true);
         q_std += pb.getc_quantite(cmd, false);
         q_volu += pb.getc_quantite(cmd, true);
     }

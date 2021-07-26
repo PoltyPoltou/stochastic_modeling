@@ -24,7 +24,6 @@ Probleme::Probleme(int n_cmd,
                    std::array<double, 2> prix_prepa_mag,
                    std::array<double, 2> prix_prepa_car) :
     nb_cmd(n_cmd),
-    nb_cmd_stochastic(n_cmd),
     ratio_volu(ratio_volumineux),
     livraison_car(car) {
     // init of the static member commandes_set
@@ -64,10 +63,8 @@ int Probleme::getc_nb_articles(bool volu) const {
     double articles_cmd_volu(0);
     for (CommandeType cmd : Probleme::commandes_set) {
         // multiplications are factorised at most to increase numeric accuracy
-        articles_cmd_std +=
-            getc_demande().at(cmd)[false] * cmd.get_nb_articles();
-        articles_cmd_volu +=
-            getc_demande().at(cmd)[true] * cmd.get_nb_articles();
+        articles_cmd_std += getc_demande(cmd, false) * cmd.get_nb_articles();
+        articles_cmd_volu += getc_demande(cmd, true) * cmd.get_nb_articles();
     }
     return nb_cmd
            * (ratio_volu * articles_cmd_volu

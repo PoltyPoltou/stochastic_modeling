@@ -11,7 +11,6 @@ lp::LpDecatWithStock stochastic_problem(std::string data_dir,
     main_lp.create_stock_variables(10);
 
     for (int n_cmd_scenario : scenarios) {
-        pb.set_nb_cmd_stochastic(n_cmd_scenario);
         main_lp.create_variables(pb);
         main_lp.fullfilment_constraint(pb);
         main_lp.stock_constraint(pb);
