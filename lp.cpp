@@ -537,7 +537,9 @@ std::string get_str_solution(ProblemeStochastique &pb,
     buffer << std::endl;
 
     buffer << "valeur fonction objectif : "
-           << lin_pb.get_solver_interface().getObjValue() << std::endl;
+           << lin_pb.get_solver_interface().getObjValue()
+                  / lin_pb.get_nb_scenarios()
+           << std::endl;
     return buffer.str();
 }
 } // namespace lp

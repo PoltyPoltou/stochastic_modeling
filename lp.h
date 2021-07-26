@@ -100,6 +100,7 @@ class LpDecatScenarios : public LpDecatWithStock {
     LpDecatScenarios(OsiSolverInterface &solver);
     virtual void create_variables(ProblemeStochastique const &pb);
     void set_scenario(int scenario);
+    int get_nb_scenarios() const { return scenario_var_map.size(); };
 };
 
 struct Variable {
