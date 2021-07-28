@@ -55,7 +55,8 @@ class LinearProblem : public LinearInterface {
 
   protected:
     void create_variables(Commande_Variable_map &demande_variables_map,
-                          Probleme const &pb);
+                          Probleme const &pb,
+                          double factor = 1);
 
   public:
     LinearProblem(OsiSolverInterface &solver);
@@ -95,10 +96,14 @@ class LpDecatWithStock : public LinearProblem {
 class LpDecatScenarios : public LpDecatWithStock {
   private:
     std::map<int, Commande_Variable_map> scenario_var_map;
+    std::map<int, double> scenario_proba_map;
+    int recours_var_idx;
 
   public:
     LpDecatScenarios(OsiSolverInterface &solver);
-    virtual void create_variables(ProblemeStochastique const &pb);
+    void create_recours_var(double coef_obj);
+    virtual void create_variables(ProblemeStochastique const &pb, double proba);
+    virtual void stock_constraint(ProblemeStochastique const &pb);
     void set_scenario(int scenario);
     int get_nb_scenarios() const { return scenario_var_map.size(); };
 };

@@ -89,13 +89,17 @@ void LpDecatWithStock::load_data_in_lp(Probleme const &pb) {
 void LinearProblem::create_variables(Probleme const &pb) {
     create_variables(var_map, pb);
 }
-void LpDecatScenarios::create_variables(ProblemeStochastique const &pb) {
-    LinearProblem::create_variables(pb);
+void LpDecatScenarios::create_variables(ProblemeStochastique const &pb,
+                                        double proba) {
+    LinearProblem::create_variables(get_var_map(), pb, proba);
+    scenario_proba_map[pb.get_nb_cmd_mesured()] = proba;
     scenario_var_map[pb.get_nb_cmd_mesured()] = get_var_map();
 }
 
 void LinearProblem::create_variables(
-    Commande_Variable_map &demande_variables_map, Probleme const &pb) {
+    Commande_Variable_map &demande_variables_map,
+    Probleme const &pb,
+    double factor) {
     for (CommandeType cmd : Probleme::commandes_set) {
 
         demande_variables_map[cmd] = {std::vector<Variable>(),
@@ -110,7 +114,7 @@ void LinearProblem::create_variables(
                         && cmd.get_heure() < r.get_cutoff()) {
                         int idx;
                         this->add_var(idx,
-                                      quantite_std
+                                      factor * quantite_std
                                           * get_prix_total_itineraire(
                                               pb, r, i, cmd.get_nb_articles()),
                                       0, 1);
@@ -149,6 +153,10 @@ void LpDecatWithStock::create_stock_variables(double coef_obj) {
         add_var(idx, coef_obj, 0, 1);
         set_stock_var(lieu, true, idx);
     }
+}
+
+void LpDecatScenarios::create_recours_var(double coef_obj) {
+    add_var(recours_var_idx, coef_obj);
 }
 void LinearProblem::create_constraints(Probleme const &pb) {
     fullfilment_constraint(pb);
@@ -224,6 +232,29 @@ void quantities_volu(ProblemeStochastique const &pb,
 }
 } // namespace
 
+void LpDecatScenarios::stock_constraint(ProblemeStochastique const &pb) {
+    int nb_articles_std(pb.getc_nb_articles(false));
+    int nb_articles_volu(pb.getc_nb_articles(true));
+    CoinPackedVector vec_stock_pfs, vec_stock_mag;
+    quantities_from_pfs_and_mag(pb, *this, vec_stock_pfs, vec_stock_mag);
+
+    vec_stock_pfs.insert(this->get_stock_var("PFS", false), -nb_articles_std);
+    vec_stock_pfs.insert(recours_var_idx, -1);
+    vec_stock_mag.insert(this->get_stock_var("Mag", false), -nb_articles_std);
+    vec_stock_mag.insert(recours_var_idx, -1);
+    this->add_constraint(vec_stock_pfs, -infinity(), 0);
+    this->add_constraint(vec_stock_mag, -infinity(), 0);
+
+    CoinPackedVector vec_constraint_stock_volu;
+    for (std::string lieu : LIEUX) {
+        vec_constraint_stock_volu.clear();
+        quantities_volu(pb, *this, lieu, vec_constraint_stock_volu);
+        vec_constraint_stock_volu.insert(get_stock_var(lieu, true),
+                                         -nb_articles_volu);
+        vec_constraint_stock_volu.insert(recours_var_idx, -1);
+        this->add_constraint(vec_constraint_stock_volu, -infinity(), 0);
+    }
+}
 void LpDecatWithStock::stock_constraint(ProblemeStochastique const &pb) {
     int nb_articles_std(pb.getc_nb_articles(false));
     int nb_articles_volu(pb.getc_nb_articles(true));
