@@ -172,5 +172,5 @@ void testStochastic(std::string data_dir) {
     lp::LpDecatScenarios main_lp(stochastic_problem(data_dir, solver, pb));
     main_lp.load_problem();
     main_lp.get_solver_interface().initialSolve();
-    std::cout << lp::get_str_solution(pb, main_lp, 23814);
+    std::cout << lp::get_str_solution(pb, main_lp);
 }

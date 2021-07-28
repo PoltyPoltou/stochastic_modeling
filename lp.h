@@ -106,6 +106,7 @@ class LpDecatScenarios : public LpDecatWithStock {
     virtual void stock_constraint(ProblemeStochastique const &pb);
     void set_scenario(int scenario);
     int get_nb_scenarios() const { return scenario_var_map.size(); };
+    std::vector<int> get_scenarios() const;
 };
 
 struct Variable {
@@ -131,6 +132,8 @@ std::map<std::string, double> get_map_prep_costs(ProblemeStochastique const &pb,
 
 std::string get_str_solution(Probleme const &pb, LinearProblem &lin_pb);
 std::string get_str_solution(Probleme const &pb, LpDecatWithStock &lin_pb);
+std::string get_str_solution(ProblemeStochastique &pb,
+                             LpDecatScenarios &lin_pb);
 std::string get_str_solution(ProblemeStochastique &pb,
                              LpDecatScenarios &lin_pb,
                              int scenario);

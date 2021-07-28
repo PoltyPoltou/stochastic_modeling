@@ -333,6 +333,13 @@ void LinearProblem::fullfilment_constraint(Probleme const &pb) {
 void LpDecatScenarios::set_scenario(int scenario) {
     get_var_map() = scenario_var_map[scenario];
 }
+std::vector<int> LpDecatScenarios::get_scenarios() const {
+    std::vector<int> vec;
+    for (auto iter : scenario_proba_map) {
+        vec.push_back(iter.first);
+    }
+    return vec;
+}
 
 std::map<std::string, double>
     get_map_solution(Probleme const &pb, LinearProblem &lin_pb, bool volu) {
@@ -521,6 +528,53 @@ std::string get_str_solution(Probleme const &pb, LpDecatWithStock &lin_pb) {
     return buffer.str();
 }
 std::string get_str_solution(ProblemeStochastique &pb,
+                             LpDecatScenarios &lin_pb) {
+    std::stringstream buffer;
+    std::map<std::string, std::array<double, 2>> stock_var_values;
+
+    for (auto iter : lin_pb.get_stock_var_map()) {
+        stock_var_values[iter.first][false] =
+            lin_pb.get_var_value(iter.second[false]);
+        stock_var_values[iter.first][true] =
+            lin_pb.get_var_value(iter.second[true]);
+    }
+    buffer << "nb cmd : " << pb.get_nb_cmd()
+           << ", ratio volu : " << pb.get_ratio_volu() << std::endl;
+    buffer << "stocks variables (std,volu) : " << stock_var_values << std::endl;
+
+    for (int scenario : lin_pb.get_scenarios()) {
+        lin_pb.set_scenario(scenario);
+        pb.set_nb_cmd_mesured(scenario);
+
+        std::map<std::string, double> preparation_costs(
+            get_map_prep_costs(pb, lin_pb));
+        double obj(0);
+        for (auto iter : preparation_costs) {
+            obj += iter.second;
+        }
+        for (auto iter : lin_pb.get_var_map()) {
+            for (lp::Variable var : iter.second[false]) {
+                obj += lin_pb.get_solver_interface()
+                           .getObjCoefficients()[var.problem_idx]
+                       * lin_pb.get_solver_interface()
+                             .getColSolution()[var.problem_idx];
+            }
+            for (lp::Variable var : iter.second[true]) {
+                obj += lin_pb.get_solver_interface()
+                           .getObjCoefficients()[var.problem_idx]
+                       * lin_pb.get_solver_interface()
+                             .getColSolution()[var.problem_idx];
+            }
+        }
+
+        buffer << "nb cmd mesured: " << pb.get_nb_cmd_mesured() << std::endl;
+        buffer << "prep cost : " << preparation_costs << std::endl;
+        buffer << "valeur fonction objectif restreinte à ce scenario: " << obj
+               << std::endl;
+    }
+    return buffer.str();
+}
+std::string get_str_solution(ProblemeStochastique &pb,
                              LpDecatScenarios &lin_pb,
                              int scenario) {
     lin_pb.set_scenario(scenario);
@@ -567,9 +621,28 @@ std::string get_str_solution(ProblemeStochastique &pb,
     }
     buffer << std::endl;
 
-    buffer << "valeur fonction objectif : "
-           << lin_pb.get_solver_interface().getObjValue()
-                  / lin_pb.get_nb_scenarios()
+    double obj = 0;
+
+    for (auto iter : preparation_costs) {
+        obj += iter.second;
+    }
+
+    for (auto iter : lin_pb.get_var_map()) {
+        for (lp::Variable var : iter.second[false]) {
+            obj += lin_pb.get_solver_interface()
+                       .getObjCoefficients()[var.problem_idx]
+                   * lin_pb.get_solver_interface()
+                         .getColSolution()[var.problem_idx];
+        }
+        for (lp::Variable var : iter.second[true]) {
+            obj += lin_pb.get_solver_interface()
+                       .getObjCoefficients()[var.problem_idx]
+                   * lin_pb.get_solver_interface()
+                         .getColSolution()[var.problem_idx];
+        }
+    }
+
+    buffer << "valeur fonction objectif restreinte à ce scenario: " << obj
            << std::endl;
     return buffer.str();
 }
