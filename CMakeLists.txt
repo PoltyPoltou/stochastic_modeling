@@ -32,6 +32,8 @@ lp.cpp
 lp.h
 stochastic.cpp
 stochastic.h
+benders.cpp
+benders.h
 utils.h
 const.h
 )
