@@ -86,6 +86,32 @@ class Probleme {
 
     double getc_quantite(CommandeType const &cmd, bool volu = false) const;
     int getc_nb_articles(bool volu = false) const;
+    double get_prix_total_itineraire(Itineraire &itin, int i, int n) const;
+    virtual double get_prix_prepa_itineraire(Itineraire &itin,
+                                             int i,
+                                             int n,
+                                             std::string lieu) const;
+};
+
+class ProblemePrecis : public Probleme {
+  private:
+    double consolidationPrice, transitPrice;
+
+  public:
+    ProblemePrecis(int n_cmd,
+                   double ratio_volumineux,
+                   Livraison car,
+                   double employee_price_hour,
+                   double time_minutes_consolidation,
+                   double time_minutes_transit) :
+        Probleme(n_cmd, ratio_volumineux, car),
+        consolidationPrice(employee_price_hour * time_minutes_consolidation
+                           / 60),
+        transitPrice(employee_price_hour * time_minutes_transit / 60) {};
+    virtual double get_prix_prepa_itineraire(Itineraire &itin,
+                                             int i,
+                                             int n,
+                                             std::string lieu) const;
 };
 
 class ProblemeStochastique : public Probleme {
@@ -103,10 +129,3 @@ class ProblemeStochastique : public Probleme {
                                  bool volu = false) const;
     int getc_nb_articles_mesured(bool volu = false) const;
 };
-
-double get_prix_total_itineraire(Probleme const &pb,
-                                 Itineraire &itin,
-                                 int i,
-                                 int n);
-double get_prix_prepa_itineraire(
-    Probleme const &pb, Itineraire &itin, int i, int n, std::string lieu);

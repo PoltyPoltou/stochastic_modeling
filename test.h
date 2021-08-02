@@ -10,3 +10,4 @@ void testLpInterface();
 void testReadRouteCsv(std::string data_dir);
 void testLoadDataLp(std::string data_dir);
 void testStochastic(std::string data_dir);
+void testPbPrecis(std::string data_dir);

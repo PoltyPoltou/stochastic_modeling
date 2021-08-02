@@ -9,7 +9,11 @@ LinearInterface::LinearInterface(OsiSolverInterface &solver) :
     matrix(false, 0, 0) {}
 
 LinearProblem::LinearProblem(OsiSolverInterface &solver) :
-    LinearInterface(solver) {}
+    LinearInterface(solver) {
+    for (std::string lieu : LIEUX) {
+        stock_constraint_idx[lieu] = {-1, -1};
+    }
+}
 
 LpDecatWithStock::LpDecatWithStock(OsiSolverInterface &solver) :
     LinearProblem(solver) {}
@@ -73,6 +77,18 @@ double LinearInterface::get_var_value(int col_idx) const {
         return 0;
     }
 }
+double LinearInterface::get_row_value(int row_idx) const {
+    if (row_idx >= 0 && row_idx < solver_interface.getNumRows()) {
+        return solver_interface.getRowPrice()[row_idx];
+    } else {
+        std::cerr
+            << "Tried to access dual variable out of range in LinearProblem "
+               "at index :"
+            << row_idx << ", max index is : " << solver_interface.getNumRows()
+            << std::endl;
+        return 0;
+    }
+}
 
 void LinearProblem::load_data_in_lp(Probleme const &pb) {
     create_variables(pb);
@@ -115,8 +131,8 @@ void LinearProblem::create_variables(
                         int idx;
                         this->add_var(idx,
                                       factor * quantite_std
-                                          * get_prix_total_itineraire(
-                                              pb, r, i, cmd.get_nb_articles()),
+                                          * pb.get_prix_total_itineraire(
+                                              r, i, cmd.get_nb_articles()),
                                       0, 1);
                         demande_variables_map[cmd][0].push_back(
                             Variable(r, i, idx));
@@ -129,12 +145,11 @@ void LinearProblem::create_variables(
                                              r.get_depart_volu())
                             && cmd.get_heure() < r.get_cutoff()) {
                             int idx;
-                            this->add_var(
-                                idx,
-                                quantite_volu
-                                    * get_prix_total_itineraire(
-                                        pb, r, i, cmd.get_nb_articles()),
-                                0, 1);
+                            this->add_var(idx,
+                                          quantite_volu
+                                              * pb.get_prix_total_itineraire(
+                                                  r, i, cmd.get_nb_articles()),
+                                          0, 1);
                             demande_variables_map[cmd][1].push_back(
                                 Variable(r, i, idx));
                         }
@@ -302,17 +317,18 @@ void LinearProblem::stock_constraint(Probleme const &pb) {
     int nb_articles_volu(pb.getc_nb_articles(true));
     CoinPackedVector vec_stock_pfs, vec_stock_mag;
     quantities_from_pfs_and_mag(pb, *this, vec_stock_pfs, vec_stock_mag);
-    this->add_constraint(vec_stock_pfs, 0,
-                         nb_articles_std * pb.getc_stocks().at("PFS")[0]);
-    this->add_constraint(vec_stock_mag, 0,
-                         nb_articles_std * pb.getc_stocks().at("Mag")[0]);
+    stock_constraint_idx["PFS"][0] = this->add_constraint(
+        vec_stock_pfs, 0, nb_articles_std * pb.getc_stocks().at("PFS")[0]);
+    stock_constraint_idx["Mag"][0] = this->add_constraint(
+        vec_stock_mag, 0, nb_articles_std * pb.getc_stocks().at("Mag")[0]);
 
     CoinPackedVector vec_constraint_stock_volu;
     for (std::string lieu : LIEUX) {
         vec_constraint_stock_volu.clear();
         quantities_volu(pb, *this, lieu, vec_constraint_stock_volu);
         double stock_volu_max = pb.getc_stocks().at(lieu)[1] * nb_articles_volu;
-        this->add_constraint(vec_constraint_stock_volu, 0, stock_volu_max);
+        stock_constraint_idx[lieu][1] =
+            this->add_constraint(vec_constraint_stock_volu, 0, stock_volu_max);
     }
 }
 
@@ -401,8 +417,8 @@ std::map<std::string, double> get_map_prep_costs(Probleme const &pb,
                 preparation_costs[lieu] +=
                     pb.getc_quantite(cmd, false)
                     * lin_pb.get_var_value(v.problem_idx)
-                    * get_prix_prepa_itineraire(pb, v.route, v.i,
-                                                cmd.get_nb_articles(), lieu);
+                    * pb.get_prix_prepa_itineraire(v.route, v.i,
+                                                   cmd.get_nb_articles(), lieu);
             }
         }
         for (lp::Variable v : lin_pb.get_var_map().at(cmd)[1]) {
@@ -410,8 +426,8 @@ std::map<std::string, double> get_map_prep_costs(Probleme const &pb,
                 preparation_costs[lieu] +=
                     pb.getc_quantite(cmd, true)
                     * lin_pb.get_var_value(v.problem_idx)
-                    * get_prix_prepa_itineraire(pb, v.route, v.i,
-                                                cmd.get_nb_articles(), lieu);
+                    * pb.get_prix_prepa_itineraire(v.route, v.i,
+                                                   cmd.get_nb_articles(), lieu);
             }
         }
     }
@@ -427,8 +443,8 @@ std::map<std::string, double> get_map_prep_costs(ProblemeStochastique const &pb,
                 preparation_costs[lieu] +=
                     pb.getc_quantite_mesured(cmd, false)
                     * lin_pb.get_var_value(v.problem_idx)
-                    * get_prix_prepa_itineraire(pb, v.route, v.i,
-                                                cmd.get_nb_articles(), lieu);
+                    * pb.get_prix_prepa_itineraire(v.route, v.i,
+                                                   cmd.get_nb_articles(), lieu);
             }
         }
         for (lp::Variable v : lin_pb.get_var_map().at(cmd)[1]) {
@@ -436,8 +452,8 @@ std::map<std::string, double> get_map_prep_costs(ProblemeStochastique const &pb,
                 preparation_costs[lieu] +=
                     pb.getc_quantite_mesured(cmd, true)
                     * lin_pb.get_var_value(v.problem_idx)
-                    * get_prix_prepa_itineraire(pb, v.route, v.i,
-                                                cmd.get_nb_articles(), lieu);
+                    * pb.get_prix_prepa_itineraire(v.route, v.i,
+                                                   cmd.get_nb_articles(), lieu);
             }
         }
     }

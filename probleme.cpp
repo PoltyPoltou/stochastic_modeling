@@ -85,8 +85,10 @@ int ProblemeStochastique::getc_nb_articles_mesured(bool volu) const {
     return getc_nb_articles(volu) * nb_cmd_mesured / get_nb_cmd();
 }
 
-double get_prix_prepa_itineraire(
-    Probleme const &pb, Itineraire &itin, int i, int n, std::string lieu) {
+double Probleme::get_prix_prepa_itineraire(Itineraire &itin,
+                                           int i,
+                                           int n,
+                                           std::string lieu) const {
     int quantite = 0;
     int quantite_volu =
         itin.is_volumineux() && (itin.get_depart_volu() == lieu);
@@ -97,16 +99,33 @@ double get_prix_prepa_itineraire(
     } else { // lieu =="CAR"
         quantite = 0;
     }
-    return quantite * pb.getc_prix_preration().at(lieu)[0]
-           + quantite_volu * pb.getc_prix_preration().at(lieu)[1];
+    return quantite * getc_prix_preration().at(lieu)[0]
+           + quantite_volu * getc_prix_preration().at(lieu)[1];
 }
 
-double get_prix_total_itineraire(Probleme const &pb,
-                                 Itineraire &itin,
-                                 int i,
-                                 int n) {
+double
+    Probleme::get_prix_total_itineraire(Itineraire &itin, int i, int n) const {
     return itin.get_prix_livraison()
-           + get_prix_prepa_itineraire(pb, itin, i, n, "PFS")
-           + get_prix_prepa_itineraire(pb, itin, i, n, "Mag")
-           + get_prix_prepa_itineraire(pb, itin, i, n, "CAR");
+           + get_prix_prepa_itineraire(itin, i, n, "PFS")
+           + get_prix_prepa_itineraire(itin, i, n, "Mag")
+           + get_prix_prepa_itineraire(itin, i, n, "CAR");
+}
+double ProblemePrecis::get_prix_prepa_itineraire(Itineraire &itin,
+                                                 int i,
+                                                 int n,
+                                                 std::string lieu) const {
+    double price = Probleme::get_prix_prepa_itineraire(itin, i, n, lieu);
+    if (itin.get_prix().contains("Mag") && itin.get_prix().at("Mag") != 0
+        && lieu == "Mag") {
+        if (itin.is_volumineux() && i == n && i != 0) {
+            price += transitPrice * 1.1;
+        } else if (i == n && i != 0) {
+            price += transitPrice;
+        } else if (itin.is_volumineux() && i != n && i != 0) {
+            price += consolidationPrice * 1.1;
+        } else if (i != n && i != 0) {
+            price += consolidationPrice;
+        }
+    }
+    return price;
 }

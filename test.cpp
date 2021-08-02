@@ -18,7 +18,8 @@ void testall(std::string data_dir) {
     testLpInterface();
     testReadRouteCsv(data_dir);
     testLoadDataLp(data_dir);
-    testStochastic(data_dir);
+    testPbPrecis(data_dir);
+    // testStochastic(data_dir);
 }
 
 void testCsv(std::string data_dir) {
@@ -127,9 +128,9 @@ void testReadRouteCsv(std::string data_dir) {
 
     std::stringstream stream;
     for (Itineraire itin : pb.get_vec_itineraires()) {
-        stream << itin << " " << get_prix_total_itineraire(pb, itin, 0, 5)
-               << " " << get_prix_total_itineraire(pb, itin, 3, 5) << " "
-               << get_prix_total_itineraire(pb, itin, 5, 5) << std::endl;
+        stream << itin << " " << pb.get_prix_total_itineraire(itin, 0, 5) << " "
+               << pb.get_prix_total_itineraire(itin, 3, 5) << " "
+               << pb.get_prix_total_itineraire(itin, 5, 5) << std::endl;
     }
     stream << pb.getc_nb_articles(false) << " " << pb.getc_nb_articles(true)
            << std::endl;
@@ -163,6 +164,17 @@ void testLoadDataLp(std::string data_dir) {
     assert(abs(457711 - lin_pb_stock_var.get_solver_interface().getObjValue())
            < 1);
     std::cout << "---load_data_in_lp w/ stock var passed---" << std::endl;
+}
+void testPbPrecis(std::string data_dir) {
+    ProblemePrecis pb(26460, 0.15, Livraison(1, 13, 1), 30, 20, 10);
+    read_and_gen_data_from_csv(pb, data_dir);
+
+    OsiCpxSolverInterface solver_interface;
+    lp::LpDecatWithStock lin_pb(solver_interface);
+    lin_pb.load_data_in_lp(pb);
+    lin_pb.load_problem();
+    lin_pb.get_solver_interface().initialSolve();
+    std::cout << lp::get_str_solution(pb, lin_pb);
 }
 
 void testStochastic(std::string data_dir) {

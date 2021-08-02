@@ -44,14 +44,24 @@ class LinearInterface {
                        double lower = -INFINITY,
                        double upper = INFINITY);
     double get_var_value(int col_idx) const;
+    double get_row_value(int row_idx) const;
     void set_coef(int row_idx, int col_idx, double value);
-
+    void solve() { solver_interface.initialSolve(); };
+    void resolve() { solver_interface.resolve(); };
+    double getc_objective_value() const {
+        return solver_interface.getObjValue();
+    };
+    int getc_nb_rows() const { return solver_interface.getNumRows(); };
+    void set_row_bounds(int idx, double lower, double upper) {
+        solver_interface.setRowBounds(idx, lower, upper);
+    };
     double infinity();
 };
 
 class LinearProblem : public LinearInterface {
   private:
     Commande_Variable_map var_map;
+    std::unordered_map<std::string, std::array<int, 2>> stock_constraint_idx;
 
   protected:
     void create_variables(Commande_Variable_map &demande_variables_map,
@@ -64,6 +74,9 @@ class LinearProblem : public LinearInterface {
     std::vector<Variable> const &get_var_list(CommandeType cmd, bool volu) {
         return var_map.at(cmd).at(volu);
     };
+    int get_stock_constraint_idx(std::string const &lieu, bool volu) const {
+        return stock_constraint_idx.at(lieu)[volu];
+    }
     virtual void load_data_in_lp(Probleme const &pb);
     virtual void create_variables(Probleme const &pb);
     virtual void stock_constraint(Probleme const &pb);
