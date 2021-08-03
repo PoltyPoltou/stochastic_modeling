@@ -61,7 +61,9 @@ int LinearInterface::add_constraint(CoinPackedVector &coefs,
 void LinearInterface::set_coef(int row_idx, int col_idx, double value) {
     matrix.modifyCoefficient(row_idx, col_idx, value);
 }
-
+void LinearInterface::set_row_bounds(int idx, double lower, double upper) {
+    solver_interface.setRowBounds(idx, lower, upper);
+};
 double LinearInterface::infinity() {
     return solver_interface.getInfinity();
 }

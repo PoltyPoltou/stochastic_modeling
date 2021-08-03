@@ -25,3 +25,91 @@ lp::LpDecatScenarios stochastic_problem(std::string data_dir,
     }
     return main_lp;
 }
+
+void benders_decomposition(std::string data_dir) {
+    OsiCpxSolverInterface main_solver;
+    lp::LpDecatWithStock main_lp(main_solver);
+    int nb_cmd_base = 26460;
+    Probleme reference(nb_cmd_base, 0.15, Livraison(1, 13, 1));
+    read_and_gen_data_from_csv(reference, data_dir);
+    main_lp.create_stock_variables(1);
+    main_lp.load_problem();
+    main_lp.solve();
+    double borne_inf(main_lp.getc_objective_value()), borne_sup(INFINITY);
+
+    std::vector<double> ratio_scenarios({0.9, 1, 1.1});
+    std::vector<std::pair<Probleme, lp::LinearProblem>> scenarios;
+    std::vector<OsiCpxSolverInterface> solver_vec;
+    for (double ratio : ratio_scenarios) {
+        solver_vec.push_back(OsiCpxSolverInterface());
+        lp::LinearProblem lp(solver_vec.back());
+        Probleme pb(nb_cmd_base * ratio, 0.15, Livraison(1, 13, 1));
+        read_and_gen_data_from_csv(pb, data_dir);
+        lp.create_variables(pb);
+        lp.create_constraints(pb);
+        lp.load_problem();
+        lp.solve();
+        scenarios.push_back(std::make_pair(pb, lp));
+    }
+
+    while (borne_sup - borne_inf > 1e-3) {
+        // set the new bounds of scenarios lp
+        for (int i = 0; i < scenarios.size(); ++i) {
+            Probleme &pb = scenarios[i].first;
+            lp::LinearProblem &lp = scenarios[i].second;
+            for (std::string lieu : LIEUX) {
+                for (bool volu : {false, true}) {
+                    if (lp.get_stock_constraint_idx(lieu, volu) != -1) {
+                        lp.set_row_bounds(
+                            lp.get_stock_constraint_idx(lieu, volu), 0,
+                            pb.getc_nb_articles(volu)
+                                * main_lp.get_var_value(
+                                    main_lp.get_stock_var(lieu, volu)));
+                    }
+                }
+            }
+        }
+        // solve them
+        for (int i = 0; i < scenarios.size(); ++i) {
+            lp::LinearProblem &lp = scenarios[i].second;
+            lp.resolve();
+        }
+        // add optimality cuts
+        for (int i = 0; i < scenarios.size(); ++i) {
+            lp::LinearProblem &lp = scenarios[i].second;
+            Probleme &pb = scenarios[i].first;
+            int cutVarIdx;
+            double constant_term(lp.getc_objective_value());
+            main_lp.add_var(cutVarIdx, 1);
+            CoinPackedVector optimalityCut;
+            optimalityCut.setElement(cutVarIdx, -1);
+            // loop on PFS & MAG std and volu; CAR volu only
+            for (std::string lieu : LIEUX) {
+                for (bool volu : {false, true}) {
+                    if (lieu != "CAR" || volu) {
+                        optimalityCut.setElement(
+                            main_lp.get_stock_var(lieu, volu),
+                            -reference.getc_nb_articles(volu)
+                                * lp.get_row_value(
+                                    lp.get_stock_constraint_idx(lieu, volu)));
+                        constant_term -=
+                            -reference.getc_nb_articles(volu)
+                            * lp.get_row_value(
+                                lp.get_stock_constraint_idx(lieu, volu))
+                            * main_lp.get_var_value(
+                                main_lp.get_stock_var(lieu, volu));
+                    }
+                }
+            }
+            main_lp.add_constraint(optimalityCut, -constant_term);
+        }
+        // solve master
+        main_lp.resolve();
+        // update upper lower bounds
+        borne_inf = main_lp.getc_objective_value();
+        for (int i = 0; i < scenarios.size(); ++i) {
+            borne_sup =
+                std::min(borne_sup, scenarios[i].second.getc_objective_value());
+        }
+    }
+}

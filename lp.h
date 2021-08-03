@@ -52,9 +52,7 @@ class LinearInterface {
         return solver_interface.getObjValue();
     };
     int getc_nb_rows() const { return solver_interface.getNumRows(); };
-    void set_row_bounds(int idx, double lower, double upper) {
-        solver_interface.setRowBounds(idx, lower, upper);
-    };
+    void set_row_bounds(int idx, double lower, double upper);
     double infinity();
 };
 

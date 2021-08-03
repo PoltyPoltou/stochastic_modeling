@@ -1,0 +1,15 @@
+@startuml stage_decat
+class LinearInterface
+class LinearProbleme
+class LpDecatWithStock
+class LpDecatScenarios
+class Probleme
+class ProblemeStochastique
+
+LinearInterface <-- LinearProbleme
+LinearProbleme <-- LpDecatWithStock
+LpDecatWithStock <-- LpDecatScenarios
+Probleme <-- ProblemeStochastique
+
+
+@enduml

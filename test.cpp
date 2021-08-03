@@ -13,12 +13,13 @@
 #include <sstream>
 
 void testall(std::string data_dir) {
-    testCsv(data_dir);
-    testCplex();
-    testLpInterface();
-    testReadRouteCsv(data_dir);
-    testLoadDataLp(data_dir);
-    testPbPrecis(data_dir);
+    // testCsv(data_dir);
+    // testCplex();
+    // testLpInterface();
+    // testReadRouteCsv(data_dir);
+    // testLoadDataLp(data_dir);
+    // testPbPrecis(data_dir);
+    benders_decomposition(data_dir);
     // testStochastic(data_dir);
 }
 
