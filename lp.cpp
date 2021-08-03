@@ -1,4 +1,5 @@
 #include "lp.h"
+#include "coin/OsiCuts.hpp"
 #include "utils.h"
 #include <sstream>
 
@@ -39,6 +40,23 @@ void LinearInterface::set_row_bounds(int idx, double lower, double upper) {
 void LinearInterface::set_row_upper(int idx, double upper) {
     solver_interface.setRowUpper(idx, upper);
 };
+void LinearInterface::add_cut(CoinPackedVector &coefs,
+                              double lower,
+                              double upper) {
+    int *indices = coefs.getIndices();
+    double *elements = coefs.getElements();
+    int *indices_copy = new int[coefs.getNumElements()];
+    double *elements_copy = new double[coefs.getNumElements()];
+    for (int j = 0; j < coefs.getNumElements(); ++j) {
+        indices_copy[j] = indices[j];
+        elements_copy[j] = elements[j];
+    }
+    OsiRowCut cut(lower, upper, coefs.getNumElements(), coefs.getNumElements(),
+                  indices_copy, elements_copy);
+    OsiCuts cuts;
+    cuts.insert(cut);
+    solver_interface.applyCuts(cuts);
+}
 
 double LinearInterface::infinity() {
     return solver_interface.getInfinity();

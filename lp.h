@@ -27,7 +27,7 @@ class LinearInterface {
 
   public:
     LinearInterface();
-    OsiSolverInterface &get_solver_interface() { return solver_interface; };
+    OsiCpxSolverInterface &get_solver_interface() { return solver_interface; };
     CoinPackedMatrix &get_matrix() { return matrix; };
     CoinPackedVector &get_objective() { return objective; };
     CoinPackedVector &get_col_lb() { return col_lb; };
@@ -51,6 +51,7 @@ class LinearInterface {
     int getc_nb_rows() const { return solver_interface.getNumRows(); };
     void set_row_bounds(int idx, double lower, double upper);
     void set_row_upper(int idx, double upper);
+    void add_cut(CoinPackedVector &coefs, double lower, double upper);
     double infinity();
 };
 
