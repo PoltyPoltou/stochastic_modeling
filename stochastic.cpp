@@ -107,20 +107,7 @@ void benders_decomposition(std::string data_dir) {
                     }
                 }
             }
-            int *indices = optimalityCut.getIndices();
-            double *elements = optimalityCut.getElements();
-            int *indices2 = new int[optimalityCut.getNumElements()];
-            double *elements2 = new double[optimalityCut.getNumElements()];
-            for (int j = 0; j < optimalityCut.getNumElements(); ++j) {
-                indices2[j] = indices[j];
-                elements2[j] = elements[j];
-            }
-            OsiRowCut cut(-constant_term, main_lp.infinity(),
-                          optimalityCut.getNumElements(),
-                          optimalityCut.getNumElements(), indices2, elements2);
-            OsiCuts cuts;
-            cuts.insert(cut);
-            main_lp.get_solver_interface().applyCuts(cuts);
+            main_lp.add_cut(optimalityCut, -constant_term, main_lp.infinity());
             // main_lp.add_constraint(optimalityCut, -constant_term);
         }
         // solve master
@@ -131,5 +118,6 @@ void benders_decomposition(std::string data_dir) {
             borne_sup =
                 std::min(borne_sup, scenarios[i].second.getc_objective_value());
         }
+        std::cout << borne_inf << " - " << borne_sup << std::endl;
     }
 }

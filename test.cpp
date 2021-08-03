@@ -2,6 +2,7 @@
 #include "coin/CoinPackedMatrix.hpp"
 #include "coin/CoinPackedVector.hpp"
 #include "coin/OsiCpxSolverInterface.hpp"
+#include "coin/OsiCuts.hpp"
 #include "coin_util.h"
 #include "csv.h"
 #include "data.h"
@@ -16,6 +17,7 @@ void testall(std::string data_dir) {
     // testCsv(data_dir);
     // testCplex();
     testLpInterface();
+    testLpCut();
     // testReadRouteCsv(data_dir);
     // testLoadDataLp(data_dir);
     // testPbPrecis(data_dir);
@@ -73,7 +75,24 @@ void testLpInterface() {
     interface.set_row_bounds(c1, 0, 0);
     std::cout << "---lpInterface passed---" << std::endl;
 }
-
+void testLpCut() {
+    lp::LinearInterface interface;
+    OsiCpxSolverInterface &problem = interface.get_solver_interface();
+    int x1, x2;
+    interface.add_var(x1, 1, 0, 1);
+    interface.add_var(x2, 1, 0, 1);
+    problem.setObjSense(-1);
+    interface.solve();
+    assert(interface.get_var_value(x1) == 1);
+    assert(interface.get_var_value(x2) == 1);
+    CoinPackedVector cut;
+    cut.insert(x2, 1);
+    interface.add_cut(cut, 0, 0.5);
+    interface.resolve();
+    assert(interface.get_var_value(x1) == 1);
+    assert(interface.get_var_value(x2) == 0.5);
+    std::cout << "---lpCut passed---" << std::endl;
+}
 void testReadRouteCsv(std::string data_dir) {
     Probleme pb(26460, 0.15, Livraison(1, 13, 1));
     assert(Probleme::commandes_set.size()
