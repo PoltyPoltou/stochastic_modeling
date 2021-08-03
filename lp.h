@@ -21,13 +21,12 @@ typedef std::map<CommandeType,
 
 class LinearInterface {
   private:
-    OsiSolverInterface &solver_interface;
+    OsiCpxSolverInterface solver_interface;
     CoinPackedMatrix matrix;
     CoinPackedVector objective, col_lb, col_ub, row_lb, row_ub;
 
   public:
-    LinearInterface(OsiSolverInterface &solver);
-    void load_problem();
+    LinearInterface();
     OsiSolverInterface &get_solver_interface() { return solver_interface; };
     CoinPackedMatrix &get_matrix() { return matrix; };
     CoinPackedVector &get_objective() { return objective; };
@@ -39,13 +38,11 @@ class LinearInterface {
                  double coef_obj,
                  double lower = 0,
                  double upper = INFINITY);
-    int add_constraint(double lower = -INFINITY, double upper = INFINITY);
     int add_constraint(CoinPackedVector &coefs,
                        double lower = -INFINITY,
                        double upper = INFINITY);
     double get_var_value(int col_idx) const;
     double get_row_value(int row_idx) const;
-    void set_coef(int row_idx, int col_idx, double value);
     void solve() { solver_interface.initialSolve(); };
     void resolve() { solver_interface.resolve(); };
     double getc_objective_value() const {
@@ -53,6 +50,7 @@ class LinearInterface {
     };
     int getc_nb_rows() const { return solver_interface.getNumRows(); };
     void set_row_bounds(int idx, double lower, double upper);
+    void set_row_upper(int idx, double upper);
     double infinity();
 };
 
@@ -67,7 +65,7 @@ class LinearProblem : public LinearInterface {
                           double factor = 1);
 
   public:
-    LinearProblem(OsiSolverInterface &solver);
+    LinearProblem();
     Commande_Variable_map &get_var_map() { return var_map; };
     std::vector<Variable> const &get_var_list(CommandeType cmd, bool volu) {
         return var_map.at(cmd).at(volu);
@@ -87,7 +85,7 @@ class LpDecatWithStock : public LinearProblem {
     std::map<std::string, std::array<int, 2>> stock_var_map;
 
   public:
-    LpDecatWithStock(OsiSolverInterface &solver);
+    LpDecatWithStock();
     virtual void load_data_in_lp(Probleme const &pb);
     virtual void stock_constraint(Probleme const &pb);
     virtual void stock_constraint(ProblemeStochastique const &pb);
@@ -111,7 +109,7 @@ class LpDecatScenarios : public LpDecatWithStock {
     int recours_var_idx;
 
   public:
-    LpDecatScenarios(OsiSolverInterface &solver);
+    LpDecatScenarios();
     void create_recours_var(double coef_obj);
     virtual void create_variables(ProblemeStochastique const &pb, double proba);
     virtual void stock_constraint(ProblemeStochastique const &pb);

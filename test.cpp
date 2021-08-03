@@ -15,7 +15,7 @@
 void testall(std::string data_dir) {
     // testCsv(data_dir);
     // testCplex();
-    // testLpInterface();
+    testLpInterface();
     // testReadRouteCsv(data_dir);
     // testLoadDataLp(data_dir);
     // testPbPrecis(data_dir);
@@ -53,23 +53,24 @@ void testCplex() {
     std::cout << "---CPLEX passed---" << std::endl;
 }
 void testLpInterface() {
-    OsiCpxSolverInterface real_solver;
-    lp::LinearProblem interface(real_solver);
-    OsiSolverInterface &problem = interface.get_solver_interface();
+    lp::LinearInterface interface;
     int x1, x2;
-    interface.add_var(x1, -1);
-    interface.add_var(x2, -1);
-    int c1 = interface.add_constraint(0, 3);
-    int c2 = interface.add_constraint(0, 3);
-    interface.set_coef(c1, x1, 1);
-    interface.set_coef(c2, x1, 2);
-    interface.set_coef(c1, x2, 2);
-    interface.set_coef(c2, x2, 1);
-    interface.load_problem();
-    interface.get_solver_interface().initialSolve();
-    assert(problem.getObjValue() == -2);
-    assert(problem.getColSolution()[0] == 1);
-    assert(problem.getColSolution()[1] == 1);
+    interface.add_var(x1, -1, 0, 2);
+    interface.add_var(x2, -1, 0, 2);
+    CoinPackedVector c1_vec, c2_vec;
+    c1_vec.insert(x1, 1);
+    c1_vec.insert(x2, 2);
+    c2_vec.insert(x1, 2);
+    c2_vec.insert(x2, 1);
+    int c1 = interface.add_constraint(c1_vec, 0, 8);
+    interface.set_row_bounds(c1, 0, 3);
+    interface.add_constraint(c2_vec, 0, 3);
+    interface.solve();
+    OsiSolverInterface &problem = interface.get_solver_interface();
+    assert(interface.getc_objective_value() == -2);
+    assert(interface.get_var_value(x1) == 1);
+    assert(interface.get_var_value(x2) == 1);
+    interface.set_row_bounds(c1, 0, 0);
     std::cout << "---lpInterface passed---" << std::endl;
 }
 
@@ -142,22 +143,18 @@ void testLoadDataLp(std::string data_dir) {
     Probleme pb(26460, 0.15, Livraison(1, 13, 1));
     read_and_gen_data_from_csv(pb, data_dir);
 
-    OsiCpxSolverInterface solver_interface;
-    lp::LinearProblem lin_pb(solver_interface);
+    lp::LinearProblem lin_pb;
     lin_pb.load_data_in_lp(pb);
-    lin_pb.load_problem();
-    lin_pb.get_solver_interface().initialSolve();
+    lin_pb.solve();
     if (abs(507090 - lin_pb.get_solver_interface().getObjValue()) >= 1) {
         std::cout << lp::get_str_solution(pb, lin_pb);
     }
     assert(abs(507090 - lin_pb.get_solver_interface().getObjValue()) < 1);
     std::cout << "---load_data_in_lp w/o stock var passed---" << std::endl;
 
-    solver_interface = OsiCpxSolverInterface();
-    lp::LpDecatWithStock lin_pb_stock_var(solver_interface);
+    lp::LpDecatWithStock lin_pb_stock_var;
     lin_pb_stock_var.load_data_in_lp(pb);
-    lin_pb_stock_var.load_problem();
-    lin_pb_stock_var.get_solver_interface().initialSolve();
+    lin_pb_stock_var.solve();
     if (abs(457711 - lin_pb_stock_var.get_solver_interface().getObjValue())
         >= 1) {
         std::cout << lp::get_str_solution(pb, lin_pb_stock_var);
@@ -170,10 +167,8 @@ void testPbPrecis(std::string data_dir) {
     ProblemePrecis pb(26460, 0.15, Livraison(1, 13, 1), 30, 20, 10);
     read_and_gen_data_from_csv(pb, data_dir);
 
-    OsiCpxSolverInterface solver_interface;
-    lp::LpDecatWithStock lin_pb(solver_interface);
+    lp::LpDecatWithStock lin_pb;
     lin_pb.load_data_in_lp(pb);
-    lin_pb.load_problem();
     lin_pb.get_solver_interface().initialSolve();
     std::cout << lp::get_str_solution(pb, lin_pb);
 }
@@ -183,7 +178,6 @@ void testStochastic(std::string data_dir) {
     ProblemeStochastique pb(26460, 0.15, Livraison(1, 13, 1));
     read_and_gen_data_from_csv(pb, data_dir);
     lp::LpDecatScenarios main_lp(stochastic_problem(data_dir, solver, pb));
-    main_lp.load_problem();
     main_lp.get_solver_interface().initialSolve();
     std::cout << lp::get_str_solution(pb, main_lp);
 }

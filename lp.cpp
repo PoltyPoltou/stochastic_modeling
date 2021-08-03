@@ -4,69 +4,46 @@
 
 namespace lp {
 
-LinearInterface::LinearInterface(OsiSolverInterface &solver) :
-    solver_interface(solver),
-    matrix(false, 0, 0) {}
+LinearInterface::LinearInterface() {}
 
-LinearProblem::LinearProblem(OsiSolverInterface &solver) :
-    LinearInterface(solver) {
+LinearProblem::LinearProblem() : LinearInterface() {
     for (std::string lieu : LIEUX) {
         stock_constraint_idx[lieu] = {-1, -1};
     }
 }
 
-LpDecatWithStock::LpDecatWithStock(OsiSolverInterface &solver) :
-    LinearProblem(solver) {}
+LpDecatWithStock::LpDecatWithStock() : LinearProblem() {}
 
-LpDecatScenarios::LpDecatScenarios(OsiSolverInterface &solver) :
-    LpDecatWithStock(solver) {}
-
-void LinearInterface::load_problem() {
-    solver_interface.loadProblem(matrix, col_lb.getElements(),
-                                 col_ub.getElements(), objective.getElements(),
-                                 row_lb.getElements(), row_ub.getElements());
-}
+LpDecatScenarios::LpDecatScenarios() : LpDecatWithStock() {}
 
 void LinearInterface::add_var(int &idx,
                               double coef_obj,
                               double lower,
                               double upper) {
-
-    col_lb.insert(col_lb.getNumElements(), lower);
-    col_ub.insert(col_lb.getNumElements(),
-                  upper == INFINITY ? infinity() : upper);
-    objective.insert(col_lb.getNumElements(), coef_obj);
-    matrix.appendCol(CoinPackedVector());
-    idx = col_lb.getNumElements() - 1;
-}
-
-int LinearInterface::add_constraint(double lower, double upper) {
-    row_lb.insert(matrix.getNumRows(),
-                  lower == -INFINITY ? -infinity() : lower);
-    row_ub.insert(matrix.getNumRows(), upper == INFINITY ? infinity() : upper);
-    matrix.appendRow(CoinPackedVector());
-    return matrix.getNumRows() - 1;
+    solver_interface.addCol(CoinPackedVector(), lower,
+                            upper == INFINITY ? infinity() : upper, coef_obj);
+    idx = solver_interface.getNumCols() - 1;
 }
 
 int LinearInterface::add_constraint(CoinPackedVector &coefs,
                                     double lower,
                                     double upper) {
-    row_lb.insert(matrix.getNumRows(),
-                  lower == -INFINITY ? -infinity() : lower);
-    row_ub.insert(matrix.getNumRows(), upper == INFINITY ? infinity() : upper);
-    matrix.appendRow(coefs);
-    return matrix.getNumRows() - 1;
+    solver_interface.addRow(coefs, lower == -INFINITY ? -infinity() : lower,
+                            upper == INFINITY ? infinity() : upper);
+    return solver_interface.getNumRows() - 1;
 }
 
-void LinearInterface::set_coef(int row_idx, int col_idx, double value) {
-    matrix.modifyCoefficient(row_idx, col_idx, value);
-}
 void LinearInterface::set_row_bounds(int idx, double lower, double upper) {
     solver_interface.setRowBounds(idx, lower, upper);
 };
+void LinearInterface::set_row_upper(int idx, double upper) {
+    solver_interface.setRowUpper(idx, upper);
+};
+
 double LinearInterface::infinity() {
     return solver_interface.getInfinity();
 }
+
 double LinearInterface::get_var_value(int col_idx) const {
     if (col_idx >= 0 && col_idx < solver_interface.getNumCols()) {
         return solver_interface.getColSolution()[col_idx];
@@ -95,13 +72,11 @@ double LinearInterface::get_row_value(int row_idx) const {
 void LinearProblem::load_data_in_lp(Probleme const &pb) {
     create_variables(pb);
     create_constraints(pb);
-    load_problem();
 }
 void LpDecatWithStock::load_data_in_lp(Probleme const &pb) {
     create_stock_variables(0);
     create_variables(pb);
     create_constraints(pb);
-    load_problem();
 }
 
 void LinearProblem::create_variables(Probleme const &pb) {

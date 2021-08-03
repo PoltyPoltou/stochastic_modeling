@@ -1,7 +1,9 @@
 #include "stochastic.h"
 #include "data.h"
 #include <cmath>
+#include <coin/OsiCuts.hpp>
 #include <iostream>
+#include <iterator>
 inline double normal_probabilty(double x, double mean, double var) {
     return (std::erf((x - mean) / var) + 1) / 2;
 }
@@ -9,7 +11,7 @@ inline double normal_probabilty(double x, double mean, double var) {
 lp::LpDecatScenarios stochastic_problem(std::string data_dir,
                                         OsiSolverInterface &solver_interface,
                                         ProblemeStochastique &pb_loaded) {
-    lp::LpDecatScenarios main_lp(solver_interface);
+    lp::LpDecatScenarios main_lp;
     std::vector<double> scenarios({0.9, 1, 1.1});
     double width = 0.05;
     main_lp.create_stock_variables(
@@ -28,30 +30,32 @@ lp::LpDecatScenarios stochastic_problem(std::string data_dir,
 
 void benders_decomposition(std::string data_dir) {
     OsiCpxSolverInterface main_solver;
-    lp::LpDecatWithStock main_lp(main_solver);
+    lp::LpDecatWithStock main_lp;
     int nb_cmd_base = 26460;
     Probleme reference(nb_cmd_base, 0.15, Livraison(1, 13, 1));
     read_and_gen_data_from_csv(reference, data_dir);
     main_lp.create_stock_variables(1);
-    main_lp.load_problem();
+    for (bool volu : {false, true}) {
+        CoinPackedVector constraint;
+        for (std::string lieu : LIEUX) {
+            constraint.insert(main_lp.get_stock_var(lieu, volu), 1);
+        }
+        main_lp.add_constraint(constraint, 0.5, 1.5);
+    }
     main_lp.solve();
     double borne_inf(main_lp.getc_objective_value()), borne_sup(INFINITY);
 
     std::vector<double> ratio_scenarios({0.9, 1, 1.1});
     std::vector<std::pair<Probleme, lp::LinearProblem>> scenarios;
-    std::vector<OsiCpxSolverInterface> solver_vec;
     for (double ratio : ratio_scenarios) {
-        solver_vec.push_back(OsiCpxSolverInterface());
-        lp::LinearProblem lp(solver_vec.back());
+        lp::LinearProblem lp;
         Probleme pb(nb_cmd_base * ratio, 0.15, Livraison(1, 13, 1));
         read_and_gen_data_from_csv(pb, data_dir);
         lp.create_variables(pb);
         lp.create_constraints(pb);
-        lp.load_problem();
         lp.solve();
         scenarios.push_back(std::make_pair(pb, lp));
     }
-
     while (borne_sup - borne_inf > 1e-3) {
         // set the new bounds of scenarios lp
         for (int i = 0; i < scenarios.size(); ++i) {
@@ -59,12 +63,14 @@ void benders_decomposition(std::string data_dir) {
             lp::LinearProblem &lp = scenarios[i].second;
             for (std::string lieu : LIEUX) {
                 for (bool volu : {false, true}) {
-                    if (lp.get_stock_constraint_idx(lieu, volu) != -1) {
-                        lp.set_row_bounds(
-                            lp.get_stock_constraint_idx(lieu, volu), 0,
-                            pb.getc_nb_articles(volu)
-                                * main_lp.get_var_value(
-                                    main_lp.get_stock_var(lieu, volu)));
+                    int stock_constraint_idx =
+                        lp.get_stock_constraint_idx(lieu, volu);
+                    if (stock_constraint_idx != -1) {
+                        int stock_var_idx = main_lp.get_stock_var(lieu, volu);
+                        double upper = pb.getc_nb_articles(volu)
+                                       * main_lp.get_var_value(stock_var_idx);
+                        scenarios[i].second.set_row_upper(stock_constraint_idx,
+                                                          upper);
                     }
                 }
             }
@@ -82,12 +88,12 @@ void benders_decomposition(std::string data_dir) {
             double constant_term(lp.getc_objective_value());
             main_lp.add_var(cutVarIdx, 1);
             CoinPackedVector optimalityCut;
-            optimalityCut.setElement(cutVarIdx, -1);
+            optimalityCut.insert(cutVarIdx, -1);
             // loop on PFS & MAG std and volu; CAR volu only
             for (std::string lieu : LIEUX) {
                 for (bool volu : {false, true}) {
                     if (lieu != "CAR" || volu) {
-                        optimalityCut.setElement(
+                        optimalityCut.insert(
                             main_lp.get_stock_var(lieu, volu),
                             -reference.getc_nb_articles(volu)
                                 * lp.get_row_value(
@@ -101,7 +107,21 @@ void benders_decomposition(std::string data_dir) {
                     }
                 }
             }
-            main_lp.add_constraint(optimalityCut, -constant_term);
+            int *indices = optimalityCut.getIndices();
+            double *elements = optimalityCut.getElements();
+            int *indices2 = new int[optimalityCut.getNumElements()];
+            double *elements2 = new double[optimalityCut.getNumElements()];
+            for (int j = 0; j < optimalityCut.getNumElements(); ++j) {
+                indices2[j] = indices[j];
+                elements2[j] = elements[j];
+            }
+            OsiRowCut cut(-constant_term, main_lp.infinity(),
+                          optimalityCut.getNumElements(),
+                          optimalityCut.getNumElements(), indices2, elements2);
+            OsiCuts cuts;
+            cuts.insert(cut);
+            main_lp.get_solver_interface().applyCuts(cuts);
+            // main_lp.add_constraint(optimalityCut, -constant_term);
         }
         // solve master
         main_lp.resolve();
