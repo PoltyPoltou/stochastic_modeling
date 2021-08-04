@@ -59,6 +59,7 @@ class LinearProblem : public LinearInterface {
   private:
     Commande_Variable_map var_map;
     std::unordered_map<std::string, std::array<int, 2>> stock_constraint_idx;
+    std::unordered_map<std::string, std::array<int, 2>> opt_recours_var_idx;
 
   protected:
     void create_variables(Commande_Variable_map &demande_variables_map,
@@ -77,6 +78,7 @@ class LinearProblem : public LinearInterface {
     virtual void load_data_in_lp(Probleme const &pb);
     virtual void create_variables(Probleme const &pb);
     virtual void stock_constraint(Probleme const &pb);
+    void create_opt_recours_var(double coef_obj);
     void create_constraints(Probleme const &pb);
     void fullfilment_constraint(Probleme const &pb);
 };
@@ -107,13 +109,10 @@ class LpDecatScenarios : public LpDecatWithStock {
   private:
     std::map<int, Commande_Variable_map> scenario_var_map;
     std::map<int, double> scenario_proba_map;
-    int recours_var_idx;
 
   public:
     LpDecatScenarios();
-    void create_recours_var(double coef_obj);
     virtual void create_variables(ProblemeStochastique const &pb, double proba);
-    virtual void stock_constraint(ProblemeStochastique const &pb);
     void set_scenario(int scenario);
     int get_nb_scenarios() const { return scenario_var_map.size(); };
     std::vector<int> get_scenarios() const;

@@ -10,6 +10,7 @@ LinearInterface::LinearInterface() {}
 LinearProblem::LinearProblem() : LinearInterface() {
     for (std::string lieu : LIEUX) {
         stock_constraint_idx[lieu] = {-1, -1};
+        opt_recours_var_idx[lieu] = {-1, -1};
     }
 }
 
@@ -100,6 +101,14 @@ void LpDecatWithStock::load_data_in_lp(Probleme const &pb) {
 void LinearProblem::create_variables(Probleme const &pb) {
     create_variables(var_map, pb);
 }
+void LinearProblem::create_opt_recours_var(double coef_obj) {
+    for (std::string lieu : LIEUX) {
+        for (bool volu : {false, true}) {
+            add_var(opt_recours_var_idx[lieu][volu], coef_obj);
+        }
+    }
+}
+
 void LpDecatScenarios::create_variables(ProblemeStochastique const &pb,
                                         double proba) {
     LinearProblem::create_variables(get_var_map(), pb, proba);
@@ -141,7 +150,7 @@ void LinearProblem::create_variables(
                             && cmd.get_heure() < r.get_cutoff()) {
                             int idx;
                             this->add_var(idx,
-                                          quantite_volu
+                                          factor * quantite_volu
                                               * pb.get_prix_total_itineraire(
                                                   r, i, cmd.get_nb_articles()),
                                           0, 1);
@@ -165,9 +174,6 @@ void LpDecatWithStock::create_stock_variables(double coef_obj) {
     }
 }
 
-void LpDecatScenarios::create_recours_var(double coef_obj) {
-    add_var(recours_var_idx, coef_obj);
-}
 void LinearProblem::create_constraints(Probleme const &pb) {
     fullfilment_constraint(pb);
     stock_constraint(pb);
@@ -242,29 +248,6 @@ void quantities_volu(ProblemeStochastique const &pb,
 }
 } // namespace
 
-void LpDecatScenarios::stock_constraint(ProblemeStochastique const &pb) {
-    int nb_articles_std(pb.getc_nb_articles(false));
-    int nb_articles_volu(pb.getc_nb_articles(true));
-    CoinPackedVector vec_stock_pfs, vec_stock_mag;
-    quantities_from_pfs_and_mag(pb, *this, vec_stock_pfs, vec_stock_mag);
-
-    vec_stock_pfs.insert(this->get_stock_var("PFS", false), -nb_articles_std);
-    vec_stock_pfs.insert(recours_var_idx, -1);
-    vec_stock_mag.insert(this->get_stock_var("Mag", false), -nb_articles_std);
-    vec_stock_mag.insert(recours_var_idx, -1);
-    this->add_constraint(vec_stock_pfs, -infinity(), 0);
-    this->add_constraint(vec_stock_mag, -infinity(), 0);
-
-    CoinPackedVector vec_constraint_stock_volu;
-    for (std::string lieu : LIEUX) {
-        vec_constraint_stock_volu.clear();
-        quantities_volu(pb, *this, lieu, vec_constraint_stock_volu);
-        vec_constraint_stock_volu.insert(get_stock_var(lieu, true),
-                                         -nb_articles_volu);
-        vec_constraint_stock_volu.insert(recours_var_idx, -1);
-        this->add_constraint(vec_constraint_stock_volu, -infinity(), 0);
-    }
-}
 void LpDecatWithStock::stock_constraint(ProblemeStochastique const &pb) {
     int nb_articles_std(pb.getc_nb_articles(false));
     int nb_articles_volu(pb.getc_nb_articles(true));
@@ -310,8 +293,13 @@ void LpDecatWithStock::stock_constraint(Probleme const &pb) {
 void LinearProblem::stock_constraint(Probleme const &pb) {
     int nb_articles_std(pb.getc_nb_articles(false));
     int nb_articles_volu(pb.getc_nb_articles(true));
+    bool has_recourse = opt_recours_var_idx["PFS"][false] != -1;
     CoinPackedVector vec_stock_pfs, vec_stock_mag;
     quantities_from_pfs_and_mag(pb, *this, vec_stock_pfs, vec_stock_mag);
+    if (has_recourse) {
+        vec_stock_pfs.insert(opt_recours_var_idx["PFS"][false], -1);
+        vec_stock_mag.insert(opt_recours_var_idx["Mag"][false], -1);
+    }
     stock_constraint_idx["PFS"][0] = this->add_constraint(
         vec_stock_pfs, 0, nb_articles_std * pb.getc_stocks().at("PFS")[0]);
     stock_constraint_idx["Mag"][0] = this->add_constraint(
@@ -322,6 +310,10 @@ void LinearProblem::stock_constraint(Probleme const &pb) {
         vec_constraint_stock_volu.clear();
         quantities_volu(pb, *this, lieu, vec_constraint_stock_volu);
         double stock_volu_max = pb.getc_stocks().at(lieu)[1] * nb_articles_volu;
+        if (has_recourse) {
+            vec_constraint_stock_volu.insert(opt_recours_var_idx[lieu][true],
+                                             -1);
+        }
         stock_constraint_idx[lieu][1] =
             this->add_constraint(vec_constraint_stock_volu, 0, stock_volu_max);
     }
@@ -552,7 +544,7 @@ std::string get_str_solution(ProblemeStochastique &pb,
     buffer << "nb cmd : " << pb.get_nb_cmd()
            << ", ratio volu : " << pb.get_ratio_volu() << std::endl;
     buffer << "stocks variables (std,volu) : " << stock_var_values << std::endl;
-
+    buffer << "Total : " << lin_pb.getc_objective_value() << std::endl;
     for (int scenario : lin_pb.get_scenarios()) {
         lin_pb.set_scenario(scenario);
         pb.set_nb_cmd_mesured(scenario);

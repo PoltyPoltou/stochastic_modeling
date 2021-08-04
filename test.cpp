@@ -16,13 +16,13 @@
 void testall(std::string data_dir) {
     // testCsv(data_dir);
     // testCplex();
-    testLpInterface();
-    testLpCut();
+    // testLpInterface();
+    // testLpCut();
     // testReadRouteCsv(data_dir);
-    // testLoadDataLp(data_dir);
     // testPbPrecis(data_dir);
+    testLoadDataLp(data_dir);
     benders_decomposition(data_dir);
-    // testStochastic(data_dir);
+    testStochastic(data_dir);
 }
 
 void testCsv(std::string data_dir) {
@@ -188,7 +188,7 @@ void testPbPrecis(std::string data_dir) {
 
     lp::LpDecatWithStock lin_pb;
     lin_pb.load_data_in_lp(pb);
-    lin_pb.get_solver_interface().initialSolve();
+    lin_pb.solve();
     std::cout << lp::get_str_solution(pb, lin_pb);
 }
 
@@ -197,6 +197,6 @@ void testStochastic(std::string data_dir) {
     ProblemeStochastique pb(26460, 0.15, Livraison(1, 13, 1));
     read_and_gen_data_from_csv(pb, data_dir);
     lp::LpDecatScenarios main_lp(stochastic_problem(data_dir, solver, pb));
-    main_lp.get_solver_interface().initialSolve();
+    main_lp.solve();
     std::cout << lp::get_str_solution(pb, main_lp);
 }
