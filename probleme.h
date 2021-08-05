@@ -62,16 +62,10 @@ class Probleme {
         return vec_livraison_volu_pfs;
     };
 
-    std::map<std::string, std::array<double, 2>> &get_stocks() {
-        return stocks;
-    };
     std::map<std::string, std::array<double, 2>> const &getc_stocks() const {
         return stocks;
     };
 
-    std::map<std::string, std::array<double, 2>> &get_prix_preration() {
-        return prix_preration;
-    };
     std::map<std::string, std::array<double, 2>> const &
         getc_prix_preration() const {
         return prix_preration;
@@ -84,8 +78,9 @@ class Probleme {
     void set_demande(CommandeType const &cmd, double std, double volu);
     void compute_quantite(CommandeType const &cmd);
 
-    double getc_quantite(CommandeType const &cmd, bool volu = false) const;
-    int getc_nb_articles(bool volu = false) const;
+    virtual double getc_quantite(CommandeType const &cmd,
+                                 bool volu = false) const;
+    virtual int getc_nb_articles(bool volu = false) const;
     double get_prix_total_itineraire(Itineraire &itin, int i, int n) const;
     virtual double get_prix_prepa_itineraire(Itineraire &itin,
                                              int i,
@@ -125,7 +120,10 @@ class ProblemeStochastique : public Probleme {
 
     int get_nb_cmd_mesured() const { return nb_cmd_mesured; };
     void set_nb_cmd_mesured(int n) { nb_cmd_mesured = n; };
-    double getc_quantite_mesured(CommandeType const &cmd,
+    double getc_quantite_expected(CommandeType const &cmd,
+                                  bool volu = false) const;
+    virtual double getc_quantite(CommandeType const &cmd,
                                  bool volu = false) const;
     int getc_nb_articles_mesured(bool volu = false) const;
+    virtual int getc_nb_articles(bool volu = false) const;
 };

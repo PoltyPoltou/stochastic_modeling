@@ -12,7 +12,7 @@ lp::LpDecatScenarios stochastic_problem(std::string data_dir,
                                         OsiSolverInterface &solver_interface,
                                         ProblemeStochastique &pb_loaded) {
     lp::LpDecatScenarios main_lp;
-    std::vector<double> scenarios({1});
+    std::vector<double> scenarios({1, 1.1});
     main_lp.create_stock_variables(
         pb_loaded.getc_nb_articles()
         * 0); // coût par 100% de distribution de stock
@@ -37,7 +37,7 @@ void benders_decomposition(std::string data_dir) {
     main_lp.solve();
     double borne_inf(main_lp.getc_objective_value()), borne_sup(INFINITY);
 
-    std::vector<double> ratio_scenarios({1.1, 1.1});
+    std::vector<double> ratio_scenarios({1, 1.1});
     std::vector<std::pair<Probleme, lp::LinearProblem>> scenarios;
     std::vector<int> scenarios_optimality_var_idx;
     for (double ratio : ratio_scenarios) {
@@ -64,7 +64,7 @@ void benders_decomposition(std::string data_dir) {
                         lp.get_stock_constraint_idx(lieu, volu);
                     if (stock_constraint_idx != -1) {
                         int stock_var_idx = main_lp.get_stock_var(lieu, volu);
-                        double upper = pb.getc_nb_articles(volu)
+                        double upper = reference.getc_nb_articles(volu)
                                        * main_lp.get_var_value(stock_var_idx);
                         scenarios[i].second.set_row_upper(stock_constraint_idx,
                                                           upper);

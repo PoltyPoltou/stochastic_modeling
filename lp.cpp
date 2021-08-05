@@ -111,6 +111,9 @@ void LinearProblem::create_opt_recours_var(double coef_obj) {
 
 void LpDecatScenarios::create_variables(ProblemeStochastique const &pb,
                                         double proba) {
+    if (!get_var_map().empty()) {
+        get_var_map().clear();
+    }
     LinearProblem::create_variables(get_var_map(), pb, proba);
     scenario_proba_map[pb.get_nb_cmd_mesured()] = proba;
     scenario_var_map[pb.get_nb_cmd_mesured()] = get_var_map();
@@ -120,6 +123,7 @@ void LinearProblem::create_variables(
     Commande_Variable_map &demande_variables_map,
     Probleme const &pb,
     double factor) {
+
     for (CommandeType cmd : Probleme::commandes_set) {
 
         demande_variables_map[cmd] = {std::vector<Variable>(),
@@ -167,9 +171,9 @@ void LinearProblem::create_variables(
 void LpDecatWithStock::create_stock_variables(double coef_obj) {
     int idx;
     for (std::string lieu : LIEUX) {
-        add_var(idx, coef_obj, 0, 1);
+        add_var(idx, coef_obj, 0, 1.5);
         set_stock_var(lieu, false, idx);
-        add_var(idx, coef_obj, 0, 1);
+        add_var(idx, coef_obj, 0, 1.5);
         set_stock_var(lieu, true, idx);
     }
 }
@@ -206,39 +210,6 @@ void quantities_volu(Probleme const &pb,
                      CoinPackedVector &vec_volu) {
     for (CommandeType cmd : Probleme::commandes_set) {
         double quantite_volu = pb.getc_quantite(cmd, true);
-        for (Variable var : lin_pb.get_var_list(cmd, true)) {
-            if (var.route.get_depart_volu() == lieu) {
-                vec_volu.insert(var.problem_idx, quantite_volu);
-            }
-        }
-    }
-}
-void quantities_from_pfs_and_mag(ProblemeStochastique const &pb,
-                                 LinearProblem &lin_pb,
-                                 CoinPackedVector &vec_pfs,
-                                 CoinPackedVector &vec_mag) {
-    for (CommandeType cmd : Probleme::commandes_set) {
-        double quantite_std = pb.getc_quantite_mesured(cmd, false);
-        double quantite_volu = pb.getc_quantite_mesured(cmd, true);
-        for (Variable var : lin_pb.get_var_list(cmd, false)) {
-            vec_pfs.insert(var.problem_idx, quantite_std * var.i);
-            vec_mag.insert(var.problem_idx,
-                           quantite_std * (cmd.get_nb_articles() - var.i));
-        }
-        for (Variable var : lin_pb.get_var_list(cmd, true)) {
-            vec_pfs.insert(var.problem_idx, quantite_volu * var.i);
-            vec_mag.insert(var.problem_idx,
-                           quantite_volu * (cmd.get_nb_articles() - var.i));
-        }
-    }
-}
-
-void quantities_volu(ProblemeStochastique const &pb,
-                     LinearProblem &lin_pb,
-                     std::string lieu,
-                     CoinPackedVector &vec_volu) {
-    for (CommandeType cmd : Probleme::commandes_set) {
-        double quantite_volu = pb.getc_quantite_mesured(cmd, true);
         for (Variable var : lin_pb.get_var_list(cmd, true)) {
             if (var.route.get_depart_volu() == lieu) {
                 vec_volu.insert(var.problem_idx, quantite_volu);
@@ -382,11 +353,11 @@ std::map<std::string, double> get_map_solution(ProblemeStochastique const &pb,
                 if (map_results.contains(buffer.str())) {
                     map_results[buffer.str()] +=
                         lin_pb.get_var_value(v.problem_idx)
-                        * pb.getc_quantite_mesured(cmd, volu);
+                        * pb.getc_quantite(cmd, volu);
                 } else {
                     map_results[buffer.str()] =
                         lin_pb.get_var_value(v.problem_idx)
-                        * pb.getc_quantite_mesured(cmd, volu);
+                        * pb.getc_quantite(cmd, volu);
                 }
             }
         }
@@ -428,7 +399,7 @@ std::map<std::string, double> get_map_prep_costs(ProblemeStochastique const &pb,
         for (lp::Variable v : lin_pb.get_var_map().at(cmd)[0]) {
             for (std::string lieu : LIEUX) {
                 preparation_costs[lieu] +=
-                    pb.getc_quantite_mesured(cmd, false)
+                    pb.getc_quantite(cmd, false)
                     * lin_pb.get_var_value(v.problem_idx)
                     * pb.get_prix_prepa_itineraire(v.route, v.i,
                                                    cmd.get_nb_articles(), lieu);
@@ -437,7 +408,7 @@ std::map<std::string, double> get_map_prep_costs(ProblemeStochastique const &pb,
         for (lp::Variable v : lin_pb.get_var_map().at(cmd)[1]) {
             for (std::string lieu : LIEUX) {
                 preparation_costs[lieu] +=
-                    pb.getc_quantite_mesured(cmd, true)
+                    pb.getc_quantite(cmd, true)
                     * lin_pb.get_var_value(v.problem_idx)
                     * pb.get_prix_prepa_itineraire(v.route, v.i,
                                                    cmd.get_nb_articles(), lieu);

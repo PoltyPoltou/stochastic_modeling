@@ -1,5 +1,5 @@
 #include "probleme.h"
-
+#include <math.h>
 std::set<CommandeType, Compare_CmdType> Probleme::commandes_set =
     std::set<CommandeType, Compare_CmdType>();
 
@@ -76,9 +76,29 @@ void Probleme::set_demande(CommandeType const &cmd, double std, double volu) {
     compute_quantite(cmd);
 }
 
-double ProblemeStochastique::getc_quantite_mesured(CommandeType const &cmd,
-                                                   bool volu) const {
-    return getc_quantite(cmd, volu) * nb_cmd_mesured / get_nb_cmd();
+int ProblemeStochastique::getc_nb_articles(bool volu) const {
+    if (volu) {
+        return get_nb_cmd() * get_ratio_volu();
+    }
+    double articles_cmd_std(0);
+    double articles_cmd_volu(0);
+    for (CommandeType cmd : Probleme::commandes_set) {
+        // multiplications are factorised at most to increase numeric accuracy
+        articles_cmd_std += getc_demande(cmd, false) * cmd.get_nb_articles();
+        articles_cmd_volu += getc_demande(cmd, true) * cmd.get_nb_articles();
+    }
+    return pow(get_nb_cmd(), 2) / nb_cmd_mesured
+           * (get_ratio_volu() * articles_cmd_volu
+              + articles_cmd_std * (1 - get_ratio_volu()));
+}
+
+double ProblemeStochastique::getc_quantite(CommandeType const &cmd,
+                                           bool volu) const {
+    return Probleme::getc_quantite(cmd, volu) * nb_cmd_mesured / get_nb_cmd();
+}
+double ProblemeStochastique::getc_quantite_expected(CommandeType const &cmd,
+                                                    bool volu) const {
+    return Probleme::getc_quantite(cmd, volu);
 }
 
 int ProblemeStochastique::getc_nb_articles_mesured(bool volu) const {
