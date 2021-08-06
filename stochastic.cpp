@@ -8,14 +8,13 @@ inline double normal_probabilty(double x, double mean, double var) {
     return (std::erf((x - mean) / var) + 1) / 2;
 }
 
-lp::LpDecatScenarios stochastic_problem(std::string data_dir,
-                                        OsiSolverInterface &solver_interface,
-                                        ProblemeStochastique &pb_loaded) {
+void stochastic_problem(std::string data_dir) {
     lp::LpDecatScenarios main_lp;
+    ProblemeStochastique pb_loaded(26460, 0.15, Livraison(1, 13, 1));
+    read_and_gen_data_from_csv(pb_loaded, data_dir);
     std::vector<double> scenarios({1, 1.1});
-    main_lp.create_stock_variables(
-        pb_loaded.getc_nb_articles()
-        * 0); // coût par 100% de distribution de stock
+    main_lp.create_stock_variables(1); // coût par 100% de distribution de stock
+                                       // pb_loaded.getc_nb_articles()
     main_lp.create_opt_recours_var(
         10); // coût par article pour étendre le stock (backlog)
     for (double ratio : scenarios) {
@@ -24,16 +23,16 @@ lp::LpDecatScenarios stochastic_problem(std::string data_dir,
         main_lp.fullfilment_constraint(pb_loaded);
         main_lp.stock_constraint(pb_loaded);
     }
-    return main_lp;
+    main_lp.solve();
+    std::cout << lp::get_str_solution(pb_loaded, main_lp);
 }
 
 void benders_decomposition(std::string data_dir) {
-    OsiCpxSolverInterface main_solver;
     lp::LpDecatWithStock main_lp;
     int nb_cmd_base = 26460;
     Probleme reference(nb_cmd_base, 0.15, Livraison(1, 13, 1));
     read_and_gen_data_from_csv(reference, data_dir);
-    main_lp.create_stock_variables(0);
+    main_lp.create_stock_variables(1);
     main_lp.solve();
     double borne_inf(main_lp.getc_objective_value()), borne_sup(INFINITY);
 

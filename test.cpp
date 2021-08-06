@@ -193,10 +193,5 @@ void testPbPrecis(std::string data_dir) {
 }
 
 void testStochastic(std::string data_dir) {
-    OsiCpxSolverInterface solver;
-    ProblemeStochastique pb(26460, 0.15, Livraison(1, 13, 1));
-    read_and_gen_data_from_csv(pb, data_dir);
-    lp::LpDecatScenarios main_lp(stochastic_problem(data_dir, solver, pb));
-    main_lp.solve();
-    std::cout << lp::get_str_solution(pb, main_lp);
+    stochastic_problem(data_dir);
 }
